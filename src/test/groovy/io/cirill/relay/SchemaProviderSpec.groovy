@@ -1,0 +1,115 @@
+package io.cirill.relay
+
+import graphql.GraphQL
+import spock.lang.Specification
+
+/**
+ * Created by mcirillo on 2/7/16.
+ */
+class SchemaProviderSpec extends Specification {
+
+    def "Validate Relay Node Interface"() {
+
+        given:
+        def query =
+                """{
+                      __schema {
+                        queryType {
+                          fields {
+                            name
+                            type {
+                              name
+                              kind
+                            }
+                            args {
+                              name
+                              type {
+                                kind
+                                ofType {
+                                  name
+                                  kind
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                    """
+
+        when:
+        def result = new GraphQL(new SchemaProvider({environment -> 1}).schema).execute(query)
+
+        then:
+        def nodeField = result.data["__schema"]["queryType"]["fields"][0];
+        nodeField == [
+                name: "node",
+                type: [
+                        name: "Node",
+                        kind: "INTERFACE"
+                ],
+                args: [
+                        [name: "id",
+                         type: [kind  : "NON_NULL",
+                                ofType: [name: "ID",
+                                         kind: "SCALAR"]
+                         ]
+                        ]
+                ]
+        ]
+    }
+
+    def "Validate Relay PetConnection Schema"() {
+        given:
+        def query =
+                """{
+                          __type(name: "PetConnection") {
+                            fields {
+                              name
+                              type {
+                                name
+                                kind
+                                ofType {
+                                  name
+                                  kind
+                                }
+                              }
+                            }
+                          }
+                        }"""
+
+        when:
+        def result = new GraphQL(new SchemaProvider({environment -> 1}, Person, Pet, Pet.Species).schema).execute(query)
+
+        then:
+        def fields = result.data["__type"]["fields"];
+        fields == [[name: "edges", type: [name: null, kind: "LIST", ofType: [name: "PetEdge", kind: "OBJECT"]]], [name: "pageInfo", type: [name: null, kind: "NON_NULL", ofType: [name: "PageInfo", kind: "OBJECT"]]]]
+    }
+
+    def "Validate Relay PetEdge schema"() {
+
+        given:
+        def query = """{
+                          __type(name: "PetEdge") {
+                            fields {
+                              name
+                              type {
+                                name
+                                kind
+                                ofType {
+                                  name
+                                  kind
+                                }
+                              }
+                            }
+                          }
+                        }
+                    """
+        when:
+        def result = new GraphQL(new SchemaProvider({environment -> 1}, Person, Pet, Pet.Species).schema).execute(query);
+
+        then:
+        def fields = result.data["__type"]["fields"];
+        fields == [[name: "node", type: [name: "Pet", kind: "OBJECT", ofType: null]], [name: "cursor", type: [name: null, kind: "NON_NULL", ofType: [name: "String", kind: "SCALAR"]]]]
+    }
+}
