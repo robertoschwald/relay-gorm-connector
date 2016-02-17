@@ -19,6 +19,8 @@ import static graphql.schema.GraphQLObjectType.newObject
  */
 public class SchemaProvider {
 
+    public static final String DESCRIPTION_ID_ARGUMENT = 'The ID of an object'
+
     private static Relay relay = new Relay()
     private static TypeResolverProxy typeResolverProxy = new TypeResolverProxy()
     private static GraphQLInterfaceType NodeInterface = relay.nodeInterface(typeResolverProxy)
@@ -40,7 +42,7 @@ public class SchemaProvider {
         }
 
         // convert annotated classes into gql object types
-        knownEnums = relayTypes.findAll({ Enum.isAssignableFrom(it) }).collect { classToGQLEnum(it) }
+        knownEnums = relayTypes.findAll({ Enum.isAssignableFrom(it) }).collect { classToGQLEnum(it, it.getAnnotation(RelayType)?.description()) }
         knownTypes = relayTypes.findAll({ !Enum.isAssignableFrom(it) }).collect { classToGQLObject(it) }
 
         // convert gql object types into schema
@@ -51,9 +53,11 @@ public class SchemaProvider {
         knownTypes.each { type ->
             def fieldBuilder = newFieldDefinition()
                     .name(type.name)
+                    .description(type.description)
                     .type(type)
                     .argument(newArgument()
                         .name('id')
+                        .description(DESCRIPTION_ID_ARGUMENT)
                         .type(nonNull(Scalars.GraphQLID))
                         .build())
 
@@ -70,7 +74,7 @@ public class SchemaProvider {
     private GraphQLObjectType classToGQLObject(Class domainClass) {
         def objectBuilder = newObject()
                 .name(domainClass.simpleName)
-                .description(domainClass.getAnnotation(RelayType)?.description())
+                .description(domainClass.getAnnotation(RelayType).description())
                 .field(newFieldDefinition()
                     .name('id')
                     .type(nonNull(Scalars.GraphQLID))
@@ -81,11 +85,12 @@ public class SchemaProvider {
         domainClass.declaredFields.findAll({ it.isAnnotationPresent(RelayField) }).each { domainClassField ->
 
             boolean isArgument = domainClassField.getAnnotation(RelayArgument)
-            boolean isArgumentNullable = isArgument ? domainClassField.getAnnotation(RelayArgument).nullable() : false
+            boolean isArgumentNullable = domainClassField.getAnnotation(RelayArgument)?.nullable()
 
-            String description = domainClass.getAnnotation(RelayType)?.description()
+            String fieldDescription = domainClassField.getAnnotation(RelayField).description()
+            String argumentDescription = domainClassField.getAnnotation(RelayArgument)?.description()
 
-            def fieldBuilder = newFieldDefinition().name(domainClassField.name).description(description)
+            def fieldBuilder = newFieldDefinition().name(domainClassField.name).description(fieldDescription)
             GraphQLScalarType scalarType
 
             switch (domainClassField.type) {
@@ -136,8 +141,11 @@ public class SchemaProvider {
 
                             // Allow base type to be found via a name or ID from a nested type
                             fieldBuilder.type(reference)
-                            //fieldBuilder.argument(makeArgument(argumentName('Name'), Scalars.GraphQLString, true))
-                            //fieldBuilder.argument(makeArgument(argumentName('Id'), Scalars.GraphQLID, true))
+
+                            if (isArgument) {
+                                //fieldBuilder.argument(makeArgument(argumentName('Name'), Scalars.GraphQLString, true))
+                                fieldBuilder.argument(makeArgument(argumentName('Id'), Scalars.GraphQLID, argumentDescription, false))
+                            }
                         }
                     }
 
@@ -169,7 +177,7 @@ public class SchemaProvider {
             if (scalarType) {
                 fieldBuilder.type(scalarType)
                 if (isArgument) {
-                    fieldBuilder.argument(makeArgument(domainClassField.name, scalarType, isArgumentNullable))
+                    fieldBuilder.argument(makeArgument(domainClassField.name, scalarType, argumentDescription, isArgumentNullable))
                 }
             }
 
@@ -179,8 +187,8 @@ public class SchemaProvider {
         objectBuilder.build()
     }
 
-    private static GraphQLEnumType classToGQLEnum(Class type) {
-        def enumBuilder = newEnum().name(type.simpleName)
+    private static GraphQLEnumType classToGQLEnum(Class type, String description) {
+        def enumBuilder = newEnum().name(type.simpleName).description(description)
 
         type.declaredFields.findAll({ it.isAnnotationPresent(RelayField) }).each { field ->
             enumBuilder.value(field.name)
@@ -193,7 +201,7 @@ public class SchemaProvider {
         new GraphQLNonNull(obj)
     }
 
-    private static GraphQLArgument makeArgument(String name, GraphQLInputType type, boolean isNullable) {
-        newArgument().name(name).type(isNullable ? type : nonNull(type)).build()
+    private static GraphQLArgument makeArgument(String name, GraphQLInputType type, String description, boolean isNullable) {
+        newArgument().name(name).type(isNullable ? type : nonNull(type)).description(description).build()
     }
 }

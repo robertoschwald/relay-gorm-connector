@@ -1,6 +1,7 @@
 package io.cirill.relay
 
 import graphql.GraphQL
+import io.cirill.relay.test.Shared
 import spock.lang.Specification
 
 /**
@@ -79,7 +80,7 @@ class SchemaProviderSpec extends Specification {
                         }"""
 
         when:
-        def result = new GraphQL(new SchemaProvider({environment -> 1}, Person, Pet, Pet.Species).schema).execute(query)
+        def result = new GraphQL(new SchemaProvider({environment -> 1}, Shared.PET_PERSON_SPECIES).schema).execute(query)
 
         then:
         def fields = result.data["__type"]["fields"];
@@ -111,5 +112,18 @@ class SchemaProviderSpec extends Specification {
         then:
         def fields = result.data["__type"]["fields"];
         fields == [[name: "node", type: [name: "Pet", kind: "OBJECT", ofType: null]], [name: "cursor", type: [name: null, kind: "NON_NULL", ofType: [name: "String", kind: "SCALAR"]]]]
+    }
+
+    def "Validate schema"() {
+        given:
+        def query =  Shared.QUERY_SCHEMA_QUERYTYPE_FIELDS
+        def expected = Shared.EXPECTED_SCHEMA_QUERYTYPE_FIELDS
+
+
+        when:
+        def result = new GraphQL(new SchemaProvider({environment -> 1}, Shared.PET_PERSON_SPECIES).schema).execute query
+
+        then:
+        result.data['__schema']['queryType']['fields'].asType List toSet() equals expected.toSet()
     }
 }

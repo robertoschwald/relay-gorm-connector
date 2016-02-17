@@ -27,6 +27,7 @@ class Pet {
     String name
 
     @RelayField
+    @RelayArgument
     Person owner
 
     @RelayField

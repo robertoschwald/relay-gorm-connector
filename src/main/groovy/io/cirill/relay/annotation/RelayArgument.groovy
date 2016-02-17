@@ -14,4 +14,6 @@ public @interface RelayArgument {
 
     public boolean nullable() default false
 
+    public String description() default ''
+
 }

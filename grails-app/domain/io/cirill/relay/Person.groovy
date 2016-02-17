@@ -1,5 +1,6 @@
 package io.cirill.relay
 
+import io.cirill.relay.annotation.RelayArgument
 import io.cirill.relay.annotation.RelayField
 import io.cirill.relay.annotation.RelayType
 
@@ -7,10 +8,10 @@ import io.cirill.relay.annotation.RelayType
  * Created by mcirillo on 2/15/16.
  */
 
-@RelayType
+@RelayType(description = 'A person')
 class Person {
 
-    @RelayField
+    @RelayField(description = 'A person\'s name')
     String name
 
     @RelayField
@@ -19,6 +20,7 @@ class Person {
     String notRelayField
 
     @RelayField
+    @RelayArgument(description = 'Best friend\'s id')
     Person bestFriend
 
     @RelayField
