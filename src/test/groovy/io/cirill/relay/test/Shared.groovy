@@ -1,6 +1,5 @@
 package io.cirill.relay.test
 
-import groovy.transform.CompileStatic
 import io.cirill.relay.Person
 import io.cirill.relay.Pet
 import io.cirill.relay.SchemaProvider
@@ -15,6 +14,8 @@ public class Shared {
     public final static String DESC_ARGUMENT_BESTFRIEND = 'Best friend\'s id'
     public final static String DESC_ARGUMENT_ID = SchemaProvider.DESCRIPTION_ID_ARGUMENT
     public final static Class[] PET_PERSON_SPECIES = [Pet, Person, Pet.Species]
+
+    private final static String NON_NULL = 'NON_NULL'
 
     public final static String QUERY_SCHEMA_QUERYTYPE_FIELDS =
             """
@@ -45,88 +46,98 @@ public class Shared {
             }
             """
 
+
+    private static GENERATE_NON_NULL = { ofType -> [kind: 'NON_NULL', ofType: ofType] }
+    private static GENERATE_NULLABLE = { ofType -> [kind: ofType.kind, ofType: null] }
+
+    private static OFTYPE_INTEGER_SCALAR =
+            [
+                    name: 'Int',
+                    kind: 'SCALAR'
+            ]
+
+    private static OFTYPE_STRING_SCALAR =
+            [
+                    name: 'String',
+                    kind: 'SCALAR'
+            ]
+
+    private static OFTYPE_ID_SCALAR =
+            [
+                    name: 'ID',
+                    kind: 'SCALAR'
+            ]
+
     private static ARG_ID =
-        [
-                "name"     : "id",
-                description: DESC_ARGUMENT_ID,
-                "type"     : [
-                        "kind"  : "NON_NULL",
-                        "ofType": [
-                                "name": "ID",
-                                "kind": "SCALAR"
-                        ]
-                ]
-        ]
+            [
+                    "name"     : "id",
+                    description: DESC_ARGUMENT_ID,
+                    "type"     : GENERATE_NON_NULL(OFTYPE_ID_SCALAR)
+            ]
 
     private static FIELD_NODEINTERFACE =
-        [
-                "name"     : "node",
-                description: 'Fetches an object given its ID',
-                "type"     : [
-                        "name": "Node",
-                        "kind": "INTERFACE"
-                ],
-                "args"     : [ ARG_ID ]
-        ]
+            [
+                    "name"     : "node",
+                    description: 'Fetches an object given its ID',
+                    "type"     : [
+                            "name": "Node",
+                            "kind": "INTERFACE"
+                    ],
+                    "args"     : [ARG_ID]
+            ]
 
     private static FIELD_PET =
             [
-                    "name": "Pet",
+                    "name"     : "Pet",
                     description: '',
-                    "type": [
+                    "type"     : [
                             "name": "Pet",
                             "kind": "OBJECT"
                     ],
-                    "args": [
+                    "args"     : [
                             ARG_ID,
                             [
-                                    name: 'name',
+                                    name       : 'name',
                                     description: '',
-                                    type: [
-                                            kind  : 'NON_NULL',
-                                            ofType: [
-                                                    name: 'String',
-                                                    kind: 'SCALAR'
-                                            ]
-                                    ]
+                                    type       : GENERATE_NON_NULL(OFTYPE_STRING_SCALAR)
                             ],
                             [
-                                    "name": "ownerWithId",
+                                    "name"     : "ownerWithId",
                                     description: '',
-                                    "type": [
-                                            "kind"  : "NON_NULL",
-                                            "ofType": [
-                                                    "name": "ID",
-                                                    "kind": "SCALAR"
-                                            ]
-                                    ]
+                                    "type"     : GENERATE_NON_NULL(OFTYPE_ID_SCALAR)
                             ]
                     ]
             ]
 
     private static FIELD_PERSON = [
-            "name": "Person",
+            "name"     : "Person",
             description: DESC_TYPE_PERSON,
-            "type": [
+            "type"     : [
                     "name": "Person",
                     "kind": "OBJECT"
             ],
-            "args": [
+            "args"     : [
                     ARG_ID,
                     [
-                            "name": "bestFriendWithId",
+                            "name"     : "bestFriendWithId",
                             description: DESC_ARGUMENT_BESTFRIEND,
-                            "type": [
-                                    "kind"  : "NON_NULL",
-                                    "ofType": [
-                                            "name": "ID",
-                                            "kind": "SCALAR"
-                                    ]
-                            ]
+                            "type"     : GENERATE_NON_NULL(OFTYPE_ID_SCALAR)
                     ],
+                    [
+                            name       : 'age',
+                            description: 'A person\'s age',
+                            type       : GENERATE_NULLABLE(OFTYPE_INTEGER_SCALAR)
+                    ]
             ]
     ]
 
 
-    public static List<Map> EXPECTED_SCHEMA_QUERYTYPE_FIELDS = [ FIELD_NODEINTERFACE, FIELD_PERSON, FIELD_PET ]
+    public static Map EXPECTED_SCHEMA_QUERYTYPE_FIELDS =
+            [
+                    '__schema': [
+                            'queryType': [
+                                    'fields': [FIELD_NODEINTERFACE, FIELD_PERSON, FIELD_PET]
+                            ]
+                    ]
+            ]
 }

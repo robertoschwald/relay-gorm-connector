@@ -4,6 +4,8 @@ import graphql.GraphQL
 import io.cirill.relay.test.Shared
 import spock.lang.Specification
 
+import static io.cirill.relay.test.Helpers.mapsAreEqual
+
 /**
  * Created by mcirillo on 2/7/16.
  */
@@ -117,13 +119,13 @@ class SchemaProviderSpec extends Specification {
     def "Validate schema"() {
         given:
         def query =  Shared.QUERY_SCHEMA_QUERYTYPE_FIELDS
-        def expected = Shared.EXPECTED_SCHEMA_QUERYTYPE_FIELDS
+        Map expected = Shared.EXPECTED_SCHEMA_QUERYTYPE_FIELDS
 
 
         when:
-        def result = new GraphQL(new SchemaProvider({environment -> 1}, Shared.PET_PERSON_SPECIES).schema).execute query
+        def result = new GraphQL(new SchemaProvider({environment -> 1}, Person, Pet, Pet.Species).schema).execute query
 
         then:
-        result.data['__schema']['queryType']['fields'].asType List toSet() equals expected.toSet()
+        assert mapsAreEqual(result.data as Map, expected)
     }
 }

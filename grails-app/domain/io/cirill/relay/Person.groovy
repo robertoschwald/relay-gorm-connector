@@ -15,6 +15,7 @@ class Person {
     String name
 
     @RelayField
+    @RelayArgument(description = 'A person\'s age', nullable = true)
     int age
 
     String notRelayField
