@@ -1,5 +1,6 @@
 package io.cirill.relay
 
+import grails.test.mixin.Mock
 import grails.test.mixin.integration.Integration
 import grails.transaction.Rollback
 import io.cirill.relay.test.Shared
@@ -10,7 +11,12 @@ import static io.cirill.relay.test.Helpers.mapsAreEqual
 
 @Integration
 @Rollback
+@Mock(Person)
 class RelayAsGrailsServiceSpec extends Specification {
+
+    void setupData() {
+        new Person(name: 'steve', age: 10).save(flush: true)
+    }
 
     @Autowired
     RelayService relayService
@@ -27,4 +33,6 @@ class RelayAsGrailsServiceSpec extends Specification {
         then:
         assert mapsAreEqual(result.data as Map, expected)
     }
+
+
 }

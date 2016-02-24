@@ -10,6 +10,8 @@ import io.cirill.relay.annotation.RelayType
 @RelayType
 class Pet {
 
+    static constraints = {}
+
     @RelayType
     enum Species {
         @RelayField

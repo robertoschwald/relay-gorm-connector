@@ -23,7 +23,15 @@ public class SchemaProvider {
 
     private static Relay relay = new Relay()
     private static TypeResolverProxy typeResolverProxy = new TypeResolverProxy()
-    private static GraphQLInterfaceType NodeInterface = relay.nodeInterface(typeResolverProxy)
+    private static GraphQLInterfaceType nodeInterface = relay.nodeInterface(typeResolverProxy)
+
+    public void setTypeResolver(TypeResolver tr) {
+        typeResolverProxy.setTypeResolver(tr)
+    }
+
+    public List<GraphQLObjectType> getKnownTypes() {
+        return knownTypes
+    }
 
     private List<GraphQLObjectType> knownTypes
     private List<GraphQLEnumType> knownEnums
@@ -48,7 +56,7 @@ public class SchemaProvider {
         // convert gql object types into schema
         def queryBuilder = newObject()
                 .name('RelayQuery')
-                .field(relay.nodeField(NodeInterface, nodeDataFetcher))
+                .field(relay.nodeField(nodeInterface, nodeDataFetcher))
 
         knownTypes.each { type ->
             def fieldBuilder = newFieldDefinition()
@@ -61,9 +69,7 @@ public class SchemaProvider {
                         .type(nonNull(Scalars.GraphQLID))
                         .build())
 
-            type.fieldDefinitions.collectMany({ it.arguments })*.asType(GraphQLArgument).each {
-                fieldBuilder.argument( it )
-            }
+            fieldBuilder.argument(type.fieldDefinitions.collectMany({ it.arguments }))
 
             queryBuilder.field(fieldBuilder.build())
         }
@@ -78,6 +84,10 @@ public class SchemaProvider {
                 .field(newFieldDefinition()
                     .name('id')
                     .type(nonNull(Scalars.GraphQLID))
+                    .dataFetcher( { env ->
+                        def obj = env.getSource()
+                        return relay.toGlobalId(domainClass.simpleName, obj.id as String)
+                    } as DataFetcher)
                     .fetchField()
                     .build())
 
@@ -142,10 +152,10 @@ public class SchemaProvider {
                             // Allow base type to be found via a name or ID from a nested type
                             fieldBuilder.type(reference)
 
-                            if (isArgument) {
-                                //fieldBuilder.argument(makeArgument(argumentName('Name'), Scalars.GraphQLString, true))
-                                fieldBuilder.argument(makeArgument(argumentName('Id'), Scalars.GraphQLID, argumentDescription, false))
-                            }
+//                            if (isArgument) {
+//                                //fieldBuilder.argument(makeArgument(argumentName('Name'), Scalars.GraphQLString, true))
+//                                fieldBuilder.argument(makeArgument(argumentName('Id'), Scalars.GraphQLID, argumentDescription, false))
+//                            }
                         }
                     }
 
@@ -163,7 +173,7 @@ public class SchemaProvider {
                         // TODO implement SimpleConnection
                         List<GraphQLFieldDefinition> args = new ArrayList<>()
                         def typeForEdge = new GraphQLTypeReference(genericType.simpleName)
-                        GraphQLObjectType edgeType = relay.edgeType(typeForEdge.name, typeForEdge, NodeInterface, args)
+                        GraphQLObjectType edgeType = relay.edgeType(typeForEdge.name, typeForEdge, nodeInterface, args)
                         GraphQLObjectType connectionType = relay.connectionType(typeForEdge.name, edgeType, args)
                         fieldBuilder.type(connectionType)
                     }
@@ -176,6 +186,10 @@ public class SchemaProvider {
             // build simple argument for Scalar types
             if (scalarType) {
                 fieldBuilder.type(scalarType)
+                fieldBuilder.dataFetcher({ env ->
+                    def obj = env.getSource()
+                    return obj."$domainClassField.name"
+                })
                 if (isArgument) {
                     fieldBuilder.argument(makeArgument(domainClassField.name, scalarType, argumentDescription, isArgumentNullable))
                 }
@@ -184,7 +198,7 @@ public class SchemaProvider {
             objectBuilder.field(fieldBuilder.fetchField().build())
         }
 
-        objectBuilder.build()
+        objectBuilder.withInterface(nodeInterface).build()
     }
 
     private static GraphQLEnumType classToGQLEnum(Class type, String description) {

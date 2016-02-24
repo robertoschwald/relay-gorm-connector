@@ -11,6 +11,12 @@ import io.cirill.relay.annotation.RelayType
 @RelayType(description = 'A person')
 class Person {
 
+    static hasMany = [ pets: Pet ]
+
+    static constraints = {
+
+    }
+
     @RelayField(description = 'A person\'s name')
     String name
 
@@ -18,7 +24,7 @@ class Person {
     @RelayArgument(description = 'A person\'s age', nullable = true)
     int age
 
-    String notRelayField
+    //String notRelayField
 
     @RelayField
     @RelayArgument(description = 'Best friend\'s id')
