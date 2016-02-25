@@ -18,6 +18,7 @@ class Person {
     }
 
     @RelayField(description = 'A person\'s name')
+    @RelayArgument(description = 'A person\'s name', nullable = true)
     String name
 
     @RelayField

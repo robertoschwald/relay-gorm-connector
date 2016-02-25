@@ -25,21 +25,22 @@ class RelayServiceSpec extends Specification {
         Person.countById(1) == 1
     }
 
-    def "Add and retrieve a person via Node Interface"() {
+    def "Add and retrieve a person via Node Interface and Type argument"() {
         given:
         def bill = new Person(name: 'Bill', age: 12)
         bill.save(flush: true)
 
         def id = new Relay().toGlobalId('Person', bill.id as String)
         def query = "{ node(id: \"$id\") { id } }"
-        //def query2 = "{ Person(id: \"$id\") { name } }"
+        def query2 = "{ Person(name: \"$bill.name\") { id } }"
 
         when:
         def result = service.query(query)
-        //def result2 = service.query(query2)
+        def result2 = service.query(query2)
 
         then:
         result.data != null
         result.data.node.id == id
+        result.data.node.id == result2.data.Person.id
     }
 }

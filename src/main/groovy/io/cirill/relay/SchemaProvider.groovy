@@ -37,12 +37,14 @@ public class SchemaProvider {
     private List<GraphQLEnumType> knownEnums
 
     private DataFetcher nodeDataFetcher
+    private DataFetcher classDataFetcher
 
     public GraphQLSchema schema
 
-    public SchemaProvider(DataFetcher nodeDataFetcher, Class... relayTypes) {
+    public SchemaProvider(DataFetcher nodeDataFetcher, DataFetcher classDataFetcher, Class... relayTypes) {
 
         this.nodeDataFetcher = nodeDataFetcher
+        this.classDataFetcher = classDataFetcher
 
         // be sure the relay annotation is present
         if (relayTypes.any({ !it.isAnnotationPresent(RelayType)} )){
@@ -66,10 +68,12 @@ public class SchemaProvider {
                     .argument(newArgument()
                         .name('id')
                         .description(DESCRIPTION_ID_ARGUMENT)
-                        .type(nonNull(Scalars.GraphQLID))
+                        .type(Scalars.GraphQLID)
                         .build())
 
             fieldBuilder.argument(type.fieldDefinitions.collectMany({ it.arguments }))
+
+            fieldBuilder.dataFetcher(classDataFetcher)
 
             queryBuilder.field(fieldBuilder.build())
         }

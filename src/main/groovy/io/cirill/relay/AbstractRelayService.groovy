@@ -15,7 +15,7 @@ public abstract class AbstractRelayService {
 
     def final public ExecutionResult query(String query) {
         if (graphQL == null) {
-            schemaProvider = new SchemaProvider(getNodeDataFetcher(), getRelayDomain())
+            schemaProvider = new SchemaProvider(getNodeDataFetcher(), getClassDataFetcher(), getRelayDomain())
             graphQL = new GraphQL(schemaProvider.schema)
             schemaProvider.setTypeResolver(getTypeResolver())
         }
@@ -24,6 +24,7 @@ public abstract class AbstractRelayService {
 
     protected abstract Class[] getRelayDomain()
     protected abstract DataFetcher getNodeDataFetcher()
+    protected abstract DataFetcher getClassDataFetcher()
     protected abstract TypeResolver getTypeResolver()
 
 }

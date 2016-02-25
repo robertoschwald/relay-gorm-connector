@@ -17,13 +17,10 @@ public class RelayService extends AbstractRelayService {
     GrailsApplication grailsApplication
 
     private Relay relay = new Relay()
-    private Map grailsDomain
 
     @Override
     protected Class[] getRelayDomain() {
-        grailsDomain = grailsApplication.getArtefacts('Domain').groupBy { it.name }
-
-        def domainClassesWithRelay = grailsDomain.values().flatten().clazz.findAll({ it.isAnnotationPresent(RelayType) })
+        def domainClassesWithRelay = grailsApplication.getArtefacts('Domain')*.clazz.findAll({ it.isAnnotationPresent(RelayType) })
         domainClassesWithRelay << Pet.Species
     }
 
@@ -33,6 +30,15 @@ public class RelayService extends AbstractRelayService {
             def decoded = relay.fromGlobalId(environment.arguments.id as String)
 
             grailsApplication.allClasses.groupBy { it.simpleName }."$decoded.type".first() findById decoded.id
+        }
+    }
+
+    @Override
+    protected DataFetcher getClassDataFetcher() {
+        return { environment ->
+            def type = grailsApplication.allClasses.find({ it.simpleName == environment.fieldType.name })
+            def arg = environment.arguments.entrySet().find { entry -> entry.value != null }
+            type."findBy${arg.key.capitalize()}" arg.value
         }
     }
 
