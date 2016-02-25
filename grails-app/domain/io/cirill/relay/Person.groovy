@@ -11,8 +11,6 @@ import io.cirill.relay.annotation.RelayType
 @RelayType(description = 'A person')
 class Person {
 
-    static hasMany = [ pets: Pet ]
-
     static constraints = {
 
     }
@@ -27,11 +25,10 @@ class Person {
 
     //String notRelayField
 
-    @RelayField
-    @RelayArgument(description = 'Best friend\'s id')
-    Person bestFriend
+//    @RelayField
+//    Person bestFriend
 
-    @RelayField
-    List<Pet> pets
+//    @RelayField
+//    List<Pet> pets
 
 }

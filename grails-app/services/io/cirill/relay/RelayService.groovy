@@ -1,8 +1,6 @@
 package io.cirill.relay
 
 import grails.core.GrailsApplication
-import grails.core.GrailsClass
-import grails.core.GrailsDomainClass
 import graphql.relay.Relay
 import graphql.schema.DataFetcher
 import graphql.schema.TypeResolver
@@ -20,8 +18,8 @@ public class RelayService extends AbstractRelayService {
 
     @Override
     protected Class[] getRelayDomain() {
-        def domainClassesWithRelay = grailsApplication.getArtefacts('Domain')*.clazz.findAll({ it.isAnnotationPresent(RelayType) })
-        domainClassesWithRelay << Pet.Species
+        grailsApplication.getArtefacts('Domain')*.clazz.findAll({ it.isAnnotationPresent(RelayType) })
+        //domainClassesWithRelay << io.cirill.relay.Pet.Species
     }
 
     @Override

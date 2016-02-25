@@ -13,9 +13,6 @@ public class Shared {
     public final static String DESC_TYPE_PERSON_NAME = 'A person\'s name'
     public final static String DESC_ARGUMENT_BESTFRIEND = 'Best friend\'s id'
     public final static String DESC_ARGUMENT_ID = SchemaProvider.DESCRIPTION_ID_ARGUMENT
-    public final static Class[] PET_PERSON_SPECIES = [Pet, Person, Pet.Species]
-
-    private final static String NON_NULL = 'NON_NULL'
 
     public final static String QUERY_SCHEMA_QUERYTYPE_FIELDS =
             """
@@ -50,32 +47,52 @@ public class Shared {
     private static GENERATE_NON_NULL = { ofType -> [kind: 'NON_NULL', ofType: ofType] }
     private static GENERATE_NULLABLE = { ofType -> [kind: ofType.kind, ofType: null] }
 
-    private static OFTYPE_INTEGER_SCALAR =
+
+    static OFTYPE_INTEGER_SCALAR =
+
             [
-                    name: 'Int',
-                    kind: 'SCALAR'
+
+            name: 'Int',
+
+            kind: 'SCALAR'
+
             ]
 
-    private static OFTYPE_STRING_SCALAR =
+    static OFTYPE_STRING_SCALAR =
+
             [
-                    name: 'String',
-                    kind: 'SCALAR'
+
+            name: 'String',
+
+            kind: 'SCALAR'
+
             ]
 
-    private static OFTYPE_ID_SCALAR =
+    static OFTYPE_ID_SCALAR =
+
             [
-                    name: 'ID',
-                    kind: 'SCALAR'
+
+            name: 'ID',
+
+            kind: 'SCALAR'
+
             ]
 
-    private static ARG_ID =
+    static ARG_ID =
             [
                     "name"     : "id",
                     description: DESC_ARGUMENT_ID,
                     "type"     : GENERATE_NON_NULL(OFTYPE_ID_SCALAR)
             ]
 
-    private static FIELD_NODEINTERFACE =
+    static ARG_NULLABLE_ID =
+            [
+                    "name"     : "id",
+                    description: DESC_ARGUMENT_ID,
+                    "type"     : GENERATE_NULLABLE(OFTYPE_ID_SCALAR)
+            ]
+
+    static FIELD_NODEINTERFACE =
             [
                     "name"     : "node",
                     description: 'Fetches an object given its ID',
@@ -86,7 +103,7 @@ public class Shared {
                     "args"     : [ARG_ID]
             ]
 
-    private static FIELD_PET =
+    static FIELD_PET =
             [
                     "name"     : "Pet",
                     description: '',
@@ -95,21 +112,21 @@ public class Shared {
                             "kind": "OBJECT"
                     ],
                     "args"     : [
-                            ARG_ID,
+                            ARG_NULLABLE_ID,
                             [
                                     name       : 'name',
                                     description: '',
-                                    type       : GENERATE_NON_NULL(OFTYPE_STRING_SCALAR)
+                                    type       : GENERATE_NULLABLE(OFTYPE_STRING_SCALAR)
                             ],
-                            [
-                                    "name"     : "ownerWithId",
-                                    description: '',
-                                    "type"     : GENERATE_NON_NULL(OFTYPE_ID_SCALAR)
-                            ]
+//                            [
+//                                    "name"     : "ownerWithId",
+//                                    description: '',
+//                                    "type"     : GENERATE_NON_NULL(OFTYPE_ID_SCALAR)
+//                            ]
                     ]
             ]
 
-    private static FIELD_PERSON = [
+    static FIELD_PERSON = [
             "name"     : "Person",
             description: DESC_TYPE_PERSON,
             "type"     : [
@@ -117,16 +134,21 @@ public class Shared {
                     "kind": "OBJECT"
             ],
             "args"     : [
-                    ARG_ID,
-                    [
-                            "name"     : "bestFriendWithId",
-                            description: DESC_ARGUMENT_BESTFRIEND,
-                            "type"     : GENERATE_NON_NULL(OFTYPE_ID_SCALAR)
-                    ],
+                    ARG_NULLABLE_ID,
+//                    [
+//                            "name"     : "bestFriendWithId",
+//                            description: DESC_ARGUMENT_BESTFRIEND,
+//                            "type"     : GENERATE_NON_NULL(OFTYPE_ID_SCALAR)
+//                    ],
                     [
                             name       : 'age',
                             description: 'A person\'s age',
                             type       : GENERATE_NULLABLE(OFTYPE_INTEGER_SCALAR)
+                    ],
+                    [
+                            name: 'name',
+                            description: 'A person\'s name',
+                            type: GENERATE_NULLABLE(OFTYPE_STRING_SCALAR)
                     ]
             ]
     ]

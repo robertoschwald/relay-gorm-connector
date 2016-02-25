@@ -11,6 +11,10 @@ import static io.cirill.relay.test.Helpers.mapsAreEqual
  */
 class SchemaProviderSpec extends Specification {
 
+    @spock.lang.Shared
+    private GraphQL qL = new GraphQL(new SchemaProvider({ e -> }, { e -> }, Person, Pet).schema)
+
+
     def "Validate Relay Node Interface"() {
 
         given:
@@ -41,25 +45,26 @@ class SchemaProviderSpec extends Specification {
                     """
 
         when:
-        def result = new GraphQL(new SchemaProvider({environment -> 1}).schema).execute(query)
+        def result = qL.execute(query)
 
         then:
         def nodeField = result.data["__schema"]["queryType"]["fields"][0];
-        nodeField == [
-                name: "node",
-                type: [
-                        name: "Node",
-                        kind: "INTERFACE"
-                ],
-                args: [
-                        [name: "id",
-                         type: [kind  : "NON_NULL",
-                                ofType: [name: "ID",
-                                         kind: "SCALAR"]
-                         ]
-                        ]
-                ]
-        ]
+        nodeField == Shared.FIELD_NODEINTERFACE
+//                [
+//                name: "node",
+//                type: [
+//                        name: "Node",
+//                        kind: "INTERFACE"
+//                ],
+//                args: [
+//                        [name: "id",
+//                         type: [kind  : "NON_NULL",
+//                                ofType: [name: "ID",
+//                                         kind: "SCALAR"]
+//                         ]
+//                        ]
+//                ]
+//        ]
     }
 
     def "Validate Relay PetConnection Schema"() {
@@ -82,7 +87,7 @@ class SchemaProviderSpec extends Specification {
                         }"""
 
         when:
-        def result = new GraphQL(new SchemaProvider({environment -> 1}, Shared.PET_PERSON_SPECIES).schema).execute(query)
+        def result = qL.execute(query)
 
         then:
         def fields = result.data["__type"]["fields"];
@@ -109,7 +114,7 @@ class SchemaProviderSpec extends Specification {
                         }
                     """
         when:
-        def result = new GraphQL(new SchemaProvider({environment -> 1}, Person, Pet, Pet.Species).schema).execute(query);
+        def result = qL.execute(query);
 
         then:
         def fields = result.data["__type"]["fields"];
@@ -123,7 +128,7 @@ class SchemaProviderSpec extends Specification {
 
 
         when:
-        def result = new GraphQL(new SchemaProvider({environment -> 1}, Person, Pet, Pet.Species).schema).execute query
+        def result = qL.execute query
 
         then:
         assert mapsAreEqual(result.data as Map, expected)

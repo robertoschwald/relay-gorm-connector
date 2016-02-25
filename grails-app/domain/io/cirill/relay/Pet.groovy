@@ -12,26 +12,26 @@ class Pet {
 
     static constraints = {}
 
-    @RelayType
-    enum Species {
-        @RelayField
-        Cat,
-
-        @RelayField
-        Dog,
-
-        @RelayField
-        Snake
-    }
+//    @RelayType
+//    enum Species {
+//        @RelayField
+//        Cat,
+//
+//        @RelayField
+//        Dog,
+//
+//        @RelayField
+//        Snake
+//    }
 
     @RelayField
-    @RelayArgument
+    @RelayArgument(nullable = true)
     String name
 
-    @RelayField
-    @RelayArgument
-    Person owner
+//    @RelayField
+//    @RelayArgument
+//    Person owner
 
-    @RelayField
-    Species species
+//    @RelayField
+//    Species species
 }
