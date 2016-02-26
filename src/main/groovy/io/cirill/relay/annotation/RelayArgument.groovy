@@ -9,7 +9,7 @@ import java.lang.annotation.Target
  * Created by mcirillo on 2/16/16.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target([ElementType.METHOD, ElementType.FIELD])
 public @interface RelayArgument {
 
     public boolean nullable() default false

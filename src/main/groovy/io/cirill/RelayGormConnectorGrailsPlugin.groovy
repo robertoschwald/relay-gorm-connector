@@ -1,13 +1,15 @@
 package io.cirill
 
 import grails.plugins.*
-
 class RelayGormConnectorGrailsPlugin extends Plugin {
 
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "3.0.8 > *"
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
+            "**/controllers/**",
+            "**/domain/**",
+            "**/init/**",
             "**/views/**",
             "**/test/**",
             "**/integration-test/**"
@@ -41,10 +43,8 @@ class RelayGormConnectorGrailsPlugin extends Plugin {
     // Online location of the plugin's browseable source code.
 //    def scm = [ url: "http://svn.codehaus.org/grails-plugins/" ]
 
-    Closure doWithSpring() { {->
-            // TODO Implement runtime spring config (optional)
-        }
-    }
+    Closure doWithSpring() {{->
+    }}
 
     void doWithDynamicMethods() {
         // TODO Implement registering dynamic methods to classes (optional)

@@ -12,17 +12,14 @@ class Pet {
 
     static constraints = {}
 
-//    @RelayType
-//    enum Species {
-//        @RelayField
-//        Cat,
-//
-//        @RelayField
-//        Dog,
-//
-//        @RelayField
-//        Snake
-//    }
+    @RelayType
+    public enum Species {
+        @RelayField
+        Cat,
+
+        @RelayField
+        Dog,
+    }
 
     @RelayField
     @RelayArgument(nullable = true)
@@ -32,6 +29,11 @@ class Pet {
 //    @RelayArgument
 //    Person owner
 
-//    @RelayField
-//    Species species
+    @RelayField
+    Species species
+
+    @RelayArgument
+    Pet singleByNameLike(String name) {
+        findByNameIlike(name)
+    }
 }
