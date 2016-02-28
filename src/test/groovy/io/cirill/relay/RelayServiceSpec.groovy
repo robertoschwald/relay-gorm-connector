@@ -16,6 +16,10 @@ import io.cirill.relay.Pet.Species
 @Mock([Person, Pet])
 class RelayServiceSpec extends Specification {
 
+    @Shared
+    Relay relay = new Relay()
+    def toID = { type, id -> relay.toGlobalId(type as String, id as String) }
+
     def "Add and retrieve a person directly"() {
         given:
         def steve = new Person(name:'Steve', age:10)
@@ -31,7 +35,7 @@ class RelayServiceSpec extends Specification {
         def bill = new Person(name: 'Bill', age: 12)
         bill.save(flush: true)
 
-        def id = new Relay().toGlobalId('Person', bill.id as String)
+        def id = toID('Person', bill.id)
         def query = "{ person(id: \"$id\") { id name } }"
         def query2 = "{ person: node(id: \"$id\") { id ... on Person { name } } }"
 
@@ -51,7 +55,7 @@ class RelayServiceSpec extends Specification {
         def cal = new Pet(name:'Cal', species: Species.Cat)
         cal.save(flush:true)
 
-        def id = new Relay().toGlobalId('Pet', cal.id as String)
+        def id = toID('Pet', cal.id)
         def query = "{ pet(id: \"$id\") { id name species } }"
 
         when:
@@ -61,5 +65,30 @@ class RelayServiceSpec extends Specification {
         then:
         data.name == cal.name
         data.species as Species == cal.species
+    }
+
+    def "Get nested field data"() {
+        given:
+        def bill = new Person(name:'Bill')
+        def steve = new Person(name:'Steve', bestFriend: bill)
+        [bill, steve]*.save(flush:true)
+
+        def id = toID('Person', steve.id)
+        def query = """
+{
+    node(id: \"$id\") {
+        ... on Person {
+            bestFriend {
+                name
+            }
+        }
+    }
+}
+"""
+        when:
+        def result = service.query(query)
+
+        then:
+        result.data?.node?.bestFriend?.name == bill.name
     }
 }

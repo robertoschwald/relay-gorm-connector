@@ -52,14 +52,10 @@ public class SchemaProvider {
                     .collect{ classToGQLEnum(it, it.getAnnotation(RelayType)?.description()) }
         }
         typeResolve = domainClasses.collectEntries { [it, classToGQLObject(it)] }
-        //typeUnresolve = typeResolve.collectEntries({ key, val -> [val, key] })
-
         schema = buildSchema()
     }
 
     private GraphQLSchema buildSchema() {
-        def nodeFieldBuilder = newFieldDefinition()
-
         def queryBuilder = newObject()
                 .name('RelayQuery')
                 .field(relay.nodeField(nodeInterface, nodeDataFetcher))
@@ -166,6 +162,9 @@ public class SchemaProvider {
 
                             // Allow base type to be found via a name or ID from a nested type
                             fieldBuilder.type(reference)
+                            fieldBuilder.dataFetcher({ env ->
+                                env.source."$domainClassField.name"
+                            })
 
 //                            if (isArgument) {
 //                                //fieldBuilder.argument(makeArgument(argumentName('Name'), Scalars.GraphQLString, true))

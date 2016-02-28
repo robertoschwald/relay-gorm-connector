@@ -25,8 +25,8 @@ class Person {
 
     //String notRelayField
 
-//    @RelayField
-//    Person bestFriend
+    @RelayField
+    Person bestFriend
 
 //    @RelayField
 //    List<Pet> pets
