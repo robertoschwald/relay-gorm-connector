@@ -39,8 +39,10 @@ class RelayHelpers {
         relay.nodeField(interfaceType, dataFetcher)
     }
 
-    public static GraphQLArgument makeArgument(String name, GraphQLInputType type, String description, boolean isNullable) {
-        newArgument().name(name).type(isNullable ? type : nonNull(type)).description(description).build()
+    public static GraphQLArgument makeArgument(String name, GraphQLInputType type, String description, boolean isNullable, boolean unique) {
+        def arg = newArgument().name(name).type(isNullable ? type : nonNull(type)).description(description).build()
+        arg.metaClass['unique'] = unique
+        return arg
     }
 
     public static GraphQLNonNull nonNull(GraphQLInputType obj) {

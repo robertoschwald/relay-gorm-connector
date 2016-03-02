@@ -30,15 +30,13 @@ public class RelayService {
         domainArtefactCache."$decoded.type".findById decoded.id
     }
 
-    protected Closure<DataFetcher> selectDataFetcher = { clazz -> new DefaultSingleDataFetcher(clazz as Class) }
-
     public ExecutionResult query(String query) {
         if (graphQL == null) {
             domainArtefactCache = grailsApplication.getArtefacts('Domain')*.clazz
                     .findAll({ it.isAnnotationPresent(RelayType) })
                     .collectEntries { [it.simpleName, it] }
 
-            schemaProvider = new SchemaProvider(nodeDataFetcher as DataFetcher, selectDataFetcher , getRelayDomain())
+            schemaProvider = new SchemaProvider(nodeDataFetcher as DataFetcher , getRelayDomain())
             graphQL = new GraphQL(schemaProvider.schema)
         }
         graphQL.execute(query)

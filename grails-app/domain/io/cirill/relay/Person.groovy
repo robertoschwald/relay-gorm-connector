@@ -16,11 +16,11 @@ class Person {
     }
 
     @RelayField(description = 'A person\'s name')
-    @RelayArgument(description = 'A person\'s name')
+    @RelayArgument(description = 'A person\'s name', unique = false)
     String name
 
     @RelayField
-    @RelayArgument(description = 'A person\'s age')
+    @RelayArgument(description = 'A person\'s age', unique = false)
     int age
 
     //String notRelayField
@@ -31,4 +31,8 @@ class Person {
 //    @RelayField
 //    List<Pet> pets
 
+    @RelayArgument(unique = true)
+    static Person singleByNameLike(String name) {
+        findByNameIlike(name)
+    }
 }

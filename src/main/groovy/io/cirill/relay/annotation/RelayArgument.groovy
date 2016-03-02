@@ -16,4 +16,5 @@ public @interface RelayArgument {
 
     public String description() default ''
 
+    public boolean unique()
 }

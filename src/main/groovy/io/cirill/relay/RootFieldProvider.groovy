@@ -39,9 +39,11 @@ class RootFieldProvider {
                 .findAll({ it.isAnnotationPresent(RelayArgument) })
                 .collect { buildArgument(it, domainClass) }
 
-        pluralArguments = singleArguments.collect { arg ->
-            new GraphQLArgument(arg.name, arg.description, new GraphQLList(arg.type), null)
-        }
+        pluralArguments = singleArguments
+                .findAll { it.unique } // from metaclass
+                .collect { arg ->
+                    new GraphQLArgument(arg.name, arg.description, new GraphQLList(arg.type), null)
+                }
 
         def singleFieldBuilder = newFieldDefinition()
                 .name(objectType.name.toLowerCase())
@@ -115,9 +117,10 @@ class RootFieldProvider {
                 }
         }
 
-        boolean isArgumentNullable = method.getAnnotation(RelayArgument)?.nullable()
-        String argumentDescription = method.getAnnotation(RelayArgument)?.description()
+        boolean isArgumentUnique = method.getAnnotation(RelayArgument).unique()
+        boolean isArgumentNullable = method.getAnnotation(RelayArgument).nullable()
+        String argumentDescription = method.getAnnotation(RelayArgument).description()
 
-        RelayHelpers.makeArgument(method.name, type, argumentDescription, isArgumentNullable)
+        RelayHelpers.makeArgument(method.name, type, argumentDescription, isArgumentNullable, isArgumentUnique)
     }
 }

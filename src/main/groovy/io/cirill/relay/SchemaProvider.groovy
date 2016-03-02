@@ -26,11 +26,9 @@ public class SchemaProvider {
     private DataFetcher nodeDataFetcher
     private TypeResolver typeResolver = { object -> typeResolve[object.getClass()] }
     private GraphQLInterfaceType nodeInterface
-    private Closure<DataFetcher> getDataFetcherFor
 
-    public SchemaProvider(DataFetcher ndf, Closure<DataFetcher> dfSelector, Class... domainClasses) {
+    public SchemaProvider(DataFetcher ndf, Class... domainClasses) {
 
-        getDataFetcherFor = dfSelector
         nodeDataFetcher = ndf
         nodeInterface = RelayHelpers.nodeInterface(typeResolver)
 
@@ -84,6 +82,7 @@ public class SchemaProvider {
 
             boolean isArgument = domainClassField.getAnnotation(RelayArgument)
             boolean isArgumentNullable = domainClassField.getAnnotation(RelayArgument)?.nullable()
+            boolean isArgumentUnique = domainClassField.getAnnotation(RelayArgument)?.unique()
 
             String fieldDescription = domainClassField.getAnnotation(RelayField).description()
             String argumentDescription = domainClassField.getAnnotation(RelayArgument)?.description()
@@ -136,7 +135,12 @@ public class SchemaProvider {
                                 return obj."$domainClassField.name".toString()
                             })
                             if (isArgument) {
-                                fieldBuilder.argument(RelayHelpers.makeArgument(domainClassField.name, gqlEnum, argumentDescription, isArgumentNullable))
+                                fieldBuilder.argument(RelayHelpers.makeArgument(
+                                        domainClassField.name,
+                                        gqlEnum,
+                                        argumentDescription,
+                                        isArgumentNullable,
+                                        isArgumentUnique))
                             }
                         }
                     }
@@ -189,7 +193,12 @@ public class SchemaProvider {
                     return obj."$domainClassField.name"
                 })
                 if (isArgument) {
-                    fieldBuilder.argument(RelayHelpers.makeArgument(domainClassField.name, scalarType, argumentDescription, isArgumentNullable))
+                    fieldBuilder.argument(RelayHelpers.makeArgument(
+                            domainClassField.name,
+                            scalarType,
+                            argumentDescription,
+                            isArgumentNullable,
+                            isArgumentUnique))
                 }
             }
 

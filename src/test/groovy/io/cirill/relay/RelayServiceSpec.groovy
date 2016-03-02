@@ -87,18 +87,20 @@ class RelayServiceSpec extends Specification {
         result.data?.node?.bestFriend?.name == bill.name
     }
 
-    def "Plural identifying root nodes"() {
+    def "Plural identifying root nodes using static method query"() {
         given:
         def bill = new Person(name:'Bill')
         def steve = new Person(name:'Steve')
         [bill, steve]*.save(flush:true)
 
-        def query = "{ persons(name:[\"$bill.name\",\"$steve.name\"]) { name }}"
+        def query = "{ persons(singleByNameLike:[\"$bill.name\",\"$steve.name\"]) { name }}"
 
         when:
         def result = service.query(query)
 
         then:
         result.errors == []
+        result.data?.persons[0]?.name == bill.name
+        result.data?.persons[1]?.name == steve.name
     }
 }

@@ -24,7 +24,7 @@ class Pet {
     }
 
     @RelayField
-    @RelayArgument(description = 'A pet\'s name')
+    @RelayArgument(description = 'A pet\'s name', unique = false)
     String name
 
 //    @RelayField
@@ -32,11 +32,6 @@ class Pet {
 //    Person owner
 
     @RelayField
-    @RelayArgument(description = 'A pet\'s species')
+    @RelayArgument(description = 'A pet\'s species', unique = false)
     Species species
-
-    @RelayArgument
-    Pet singleByNameLike(String name) {
-        findByNameIlike(name)
-    }
 }
