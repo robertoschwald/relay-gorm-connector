@@ -93,7 +93,7 @@ class RelayServiceSpec extends Specification {
         def steve = new Person(name:'Steve')
         [bill, steve]*.save(flush:true)
 
-        def query = "{ persons(singleByNameLike:[\"$bill.name\",\"$steve.name\"]) { name }}"
+        def query = "{ persons(singleByNameLike: [\"$bill.name\",\"$steve.name\"],id:[\"${toID('Person', steve.id)}\",\"${toID('Person', steve.id)}\"]) { name }}"
 
         when:
         def result = service.query(query)

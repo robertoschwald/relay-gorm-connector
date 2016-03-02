@@ -38,12 +38,13 @@ public class DefaultPluralDataFetcher implements DataFetcher {
     @Override
     Object get(DataFetchingEnvironment environment) {
         def results = environment.arguments
-                .find { it.value != null }
-                .collect { args ->
+                .findAll { it.value != null }
+                .collectMany { args ->
                     args.value.asType(List).collect { arg ->
                         getForArgument(args.key, arg)
-                    }}
+                    } .reverse() }
                 .flatten()
+                .reverse()
 
         return results
     }

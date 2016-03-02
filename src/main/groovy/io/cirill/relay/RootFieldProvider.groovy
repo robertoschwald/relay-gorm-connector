@@ -66,7 +66,7 @@ class RootFieldProvider {
                 .argument(newArgument()
                     .name('id')
                     .description(RelayHelpers.DESCRIPTION_ID_ARGUMENT)
-                    .type(Scalars.GraphQLID)
+                    .type(new GraphQLList(Scalars.GraphQLID))
                     .build())
 
         pluralFieldBuilder.argument(pluralArguments)
