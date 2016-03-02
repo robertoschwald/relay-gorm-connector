@@ -6,7 +6,4 @@ import io.cirill.relay.RelayService
  */
 
 beans = {
-    relayService(RelayService) {
-        grailsApplication = ref('grailsApplication')
-    }
 }

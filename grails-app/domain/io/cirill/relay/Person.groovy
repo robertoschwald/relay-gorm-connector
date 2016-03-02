@@ -8,7 +8,7 @@ import io.cirill.relay.annotation.RelayType
  * Created by mcirillo on 2/15/16.
  */
 
-@RelayType(description = 'A person')
+@RelayType(description = 'A person', pluralName = 'persons')
 class Person {
 
     static constraints = {
@@ -16,11 +16,11 @@ class Person {
     }
 
     @RelayField(description = 'A person\'s name')
-    @RelayArgument(description = 'A person\'s name', nullable = true)
+    @RelayArgument(description = 'A person\'s name')
     String name
 
     @RelayField
-    @RelayArgument(description = 'A person\'s age', nullable = true)
+    @RelayArgument(description = 'A person\'s age')
     int age
 
     //String notRelayField

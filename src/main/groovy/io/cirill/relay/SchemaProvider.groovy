@@ -1,16 +1,15 @@
 package io.cirill.relay
 
-import grails.core.GrailsDomainClass
 import graphql.Scalars
-import graphql.relay.Relay
 import graphql.schema.*
 import io.cirill.relay.annotation.RelayArgument
+import io.cirill.relay.annotation.RelayEnum
+import io.cirill.relay.annotation.RelayEnumField
 import io.cirill.relay.annotation.RelayField
 import io.cirill.relay.annotation.RelayType
 
 import java.lang.reflect.ParameterizedType
 
-import static graphql.schema.GraphQLArgument.newArgument
 import static graphql.schema.GraphQLEnumType.newEnum
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition
 import static graphql.schema.GraphQLObjectType.newObject
@@ -20,25 +19,20 @@ import static graphql.schema.GraphQLObjectType.newObject
  */
 public class SchemaProvider {
 
-    public static final String DESCRIPTION_ID_ARGUMENT = 'The ID of an object'
-
-    private static Relay relay = new Relay()
-
     public Map<Class, GraphQLObjectType> typeResolve
-    public List<GraphQLEnumType> knownEnums
+    public Map<Class, GraphQLEnumType> enumResolve
+    public GraphQLSchema schema
 
     private DataFetcher nodeDataFetcher
     private TypeResolver typeResolver = { object -> typeResolve[object.getClass()] }
     private GraphQLInterfaceType nodeInterface
-    public GraphQLSchema schema
-
     private Closure<DataFetcher> getDataFetcherFor
 
     public SchemaProvider(DataFetcher ndf, Closure<DataFetcher> dfSelector, Class... domainClasses) {
 
         getDataFetcherFor = dfSelector
         nodeDataFetcher = ndf
-        nodeInterface = relay.nodeInterface(typeResolver)
+        nodeInterface = RelayHelpers.nodeInterface(typeResolver)
 
         // be sure the relay annotation is present
         if (domainClasses.any({ !it.isAnnotationPresent(RelayType)} )){
@@ -46,40 +40,28 @@ public class SchemaProvider {
         }
 
         // convert annotated classes into gql object types
-        knownEnums = domainClasses.collectMany { clazz ->
+        enumResolve = domainClasses.collectEntries { clazz ->
             clazz.getDeclaredClasses()
-                    .findAll{ it.isAnnotationPresent(RelayType) }
-                    .collect{ classToGQLEnum(it, it.getAnnotation(RelayType)?.description()) }
+                    .findAll{ it.isAnnotationPresent(RelayEnum) }
+                    .collectEntries { [it, classToGQLEnum(it, it.getAnnotation(RelayEnum)?.description())] }
         }
         typeResolve = domainClasses.collectEntries { [it, classToGQLObject(it)] }
+
         schema = buildSchema()
     }
 
     private GraphQLSchema buildSchema() {
         def queryBuilder = newObject()
                 .name('RelayQuery')
-                .field(relay.nodeField(nodeInterface, nodeDataFetcher))
+                .field(RelayHelpers.nodeField(nodeInterface, nodeDataFetcher))
 
         typeResolve.each { domainObj, gqlObj ->
-            def fieldBuilder = newFieldDefinition()
-                    .name(gqlObj.name.toLowerCase())
-                    .description(gqlObj.description)
-                    .type(gqlObj)
-                    .argument(newArgument()
-                    .name('id')
-                    .description(DESCRIPTION_ID_ARGUMENT)
-                    .type(Scalars.GraphQLID)
-                    .build())
-
-            // arguments for individual fields have already been parsed
-            fieldBuilder.argument(gqlObj.fieldDefinitions.collectMany({ it.arguments }))
-
-            fieldBuilder.dataFetcher(getDataFetcherFor(domainObj))
-
-            queryBuilder.field(fieldBuilder.build())
+            def rootFields = new RootFieldProvider(domainObj, gqlObj, enumResolve)
+            queryBuilder.field(rootFields.singleField)
+            queryBuilder.field(rootFields.pluralField)
         }
 
-        return GraphQLSchema.newSchema().query(queryBuilder.build()).build()
+        GraphQLSchema.newSchema().query(queryBuilder.build()).build()
     }
 
     private GraphQLObjectType classToGQLObject(Class domainClass) {
@@ -88,11 +70,11 @@ public class SchemaProvider {
                 .description(domainClass.getAnnotation(RelayType).description())
                 .field(newFieldDefinition()
                     .name('id')
-                    .description(DESCRIPTION_ID_ARGUMENT)
-                    .type(nonNull(Scalars.GraphQLID))
+                    .description(RelayHelpers.DESCRIPTION_ID_ARGUMENT)
+                    .type(RelayHelpers.nonNull(Scalars.GraphQLID))
                     .dataFetcher( { env ->
                         def obj = env.getSource()
-                        return relay.toGlobalId(domainClass.simpleName, obj.id as String)
+                        return RelayHelpers.toGlobalId(domainClass.simpleName, obj.id as String)
                     } as DataFetcher)
                     .fetchField()
                     .build())
@@ -142,35 +124,37 @@ public class SchemaProvider {
                         annotation (some heavy reflection here) and create a relay 'connection' relationship if it present.
                      */
 
-                    // field describes a type
-                    if (domainClassField.type.isAnnotationPresent(RelayType)) {
+                    // field describes an enum type
+                    if (domainClassField.type.isAnnotationPresent(RelayEnum)) {
 
                         // the field describes an enumeration
                         if (Enum.isAssignableFrom(domainClassField.type)) {
-                            def gqlEnum = knownEnums.find { it.name == domainClassField.type.simpleName }
+                            def gqlEnum = enumResolve[domainClassField.type]
                             fieldBuilder.type(gqlEnum)
                             fieldBuilder.dataFetcher({ env ->
                                 def obj = env.getSource()
                                 return obj."$domainClassField.name".toString()
                             })
+                            if (isArgument) {
+                                fieldBuilder.argument(RelayHelpers.makeArgument(domainClassField.name, gqlEnum, argumentDescription, isArgumentNullable))
+                            }
                         }
+                    }
 
-                        // the field describes some other type
-                        else {
-                            def reference = new GraphQLTypeReference(domainClassField.type.simpleName)
-                            def argumentName = { argType -> domainClassField.name + 'With' + (argType as String) }
+                    else if (domainClassField.type.isAnnotationPresent(RelayType)) {
+                        def reference = new GraphQLTypeReference(domainClassField.type.simpleName)
+                        //def argumentName = { argType -> domainClassField.name + 'With' + (argType as String) }
 
-                            // Allow base type to be found via a name or ID from a nested type
-                            fieldBuilder.type(reference)
-                            fieldBuilder.dataFetcher({ env ->
-                                env.source."$domainClassField.name"
-                            })
+                        // Allow base type to be found via a name or ID from a nested type
+                        fieldBuilder.type(reference)
+                        fieldBuilder.dataFetcher({ env ->
+                            env.source."$domainClassField.name"
+                        })
 
 //                            if (isArgument) {
 //                                //fieldBuilder.argument(makeArgument(argumentName('Name'), Scalars.GraphQLString, true))
 //                                fieldBuilder.argument(makeArgument(argumentName('Id'), Scalars.GraphQLID, argumentDescription, false))
 //                            }
-                        }
                     }
 
                     // field describes a connection
@@ -185,11 +169,11 @@ public class SchemaProvider {
                         }
 
                         // TODO implement SimpleConnection
-                        List<GraphQLFieldDefinition> args = new ArrayList<>()
-                        def typeForEdge = new GraphQLTypeReference(genericType.simpleName)
-                        GraphQLObjectType edgeType = relay.edgeType(typeForEdge.name, typeForEdge, nodeInterface, args)
-                        GraphQLObjectType connectionType = relay.connectionType(typeForEdge.name, edgeType, args)
-                        fieldBuilder.type(connectionType)
+//                        List<GraphQLFieldDefinition> args = new ArrayList<>()
+//                        def typeForEdge = new GraphQLTypeReference(genericType.simpleName)
+//                        GraphQLObjectType edgeType = relay.edgeType(typeForEdge.name, typeForEdge, nodeInterface, args)
+//                        GraphQLObjectType connectionType = relay.connectionType(typeForEdge.name, edgeType, args)
+//                        fieldBuilder.type(connectionType)
                     }
 
                     else {
@@ -204,9 +188,8 @@ public class SchemaProvider {
                     def obj = env.getSource()
                     return obj."$domainClassField.name"
                 })
-
                 if (isArgument) {
-                    fieldBuilder.argument(makeArgument(domainClassField.name, scalarType, argumentDescription, isArgumentNullable))
+                    fieldBuilder.argument(RelayHelpers.makeArgument(domainClassField.name, scalarType, argumentDescription, isArgumentNullable))
                 }
             }
 
@@ -218,18 +201,10 @@ public class SchemaProvider {
     private static GraphQLEnumType classToGQLEnum(Class type, String description) {
         def enumBuilder = newEnum().name(type.simpleName).description(description)
 
-        type.declaredFields.findAll({ it.isAnnotationPresent(RelayField) }).each { field ->
+        type.declaredFields.findAll({ it.isAnnotationPresent(RelayEnumField) }).each { field ->
             enumBuilder.value(field.name)
         }
 
         enumBuilder.build()
-    }
-
-    private static GraphQLNonNull nonNull(GraphQLInputType obj) {
-        new GraphQLNonNull(obj)
-    }
-
-    private static GraphQLArgument makeArgument(String name, GraphQLInputType type, String description, boolean isNullable) {
-        newArgument().name(name).type(isNullable ? type : nonNull(type)).description(description).build()
     }
 }

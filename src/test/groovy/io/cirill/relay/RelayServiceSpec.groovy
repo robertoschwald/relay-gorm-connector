@@ -44,27 +44,31 @@ class RelayServiceSpec extends Specification {
         def result2 = service.query(query2)
 
         then:
-        result.data != null
-        result.data.person.id == id
-        result.data.person.id == result2.data.person.id
-        result.data.person.name == result2.data.person.name
+        result.data?.person?.id == id
+        result.data?.person?.id == result2.data?.person?.id
+        result.data?.person?.name == result2.data?.person?.name
     }
 
-    def "Test pet custom argument and enum"() {
+    def "Test pet custom argument, enum fetching, and enum as argument"() {
         given:
         def cal = new Pet(name:'Cal', species: Species.Cat)
         cal.save(flush:true)
 
         def id = toID('Pet', cal.id)
         def query = "{ pet(id: \"$id\") { id name species } }"
+        def queryByEnum = """{ pet(species: $cal.species) { name }}"""
+        def queryByLikeName = """{ pet(singleByNameLike: \"%al\") { name }}"""
 
         when:
         def result = service.query(query)
-        def data = result.data.pet
+        def resultByEnum = service.query(queryByEnum)
 
         then:
-        data.name == cal.name
-        data.species as Species == cal.species
+        result.data?.pet?.name == cal.name
+        result.data?.pet?.species as Species == cal.species
+
+        resultByEnum.errors == []
+        resultByEnum.data?.pet?.name == cal.name
     }
 
     def "Get nested field data"() {
@@ -74,21 +78,27 @@ class RelayServiceSpec extends Specification {
         [bill, steve]*.save(flush:true)
 
         def id = toID('Person', steve.id)
-        def query = """
-{
-    node(id: \"$id\") {
-        ... on Person {
-            bestFriend {
-                name
-            }
-        }
-    }
-}
-"""
+        def query = """{ node(id: \"$id\") { ... on Person { bestFriend { name }}}}"""
+
         when:
         def result = service.query(query)
 
         then:
         result.data?.node?.bestFriend?.name == bill.name
+    }
+
+    def "Plural identifying root nodes"() {
+        given:
+        def bill = new Person(name:'Bill')
+        def steve = new Person(name:'Steve')
+        [bill, steve]*.save(flush:true)
+
+        def query = "{ persons(name:[\"$bill.name\",\"$steve.name\"]) { name }}"
+
+        when:
+        def result = service.query(query)
+
+        then:
+        result.errors == []
     }
 }

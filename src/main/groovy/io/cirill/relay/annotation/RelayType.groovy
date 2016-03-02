@@ -14,6 +14,14 @@ public @interface RelayType {
 
     public String description() default ''
 
+    public String pluralName()
+
 }
 
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface RelayEnum {
 
+    public String description() default ''
+
+}

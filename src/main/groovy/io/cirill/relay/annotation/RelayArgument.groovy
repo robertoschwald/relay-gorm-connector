@@ -12,7 +12,7 @@ import java.lang.annotation.Target
 @Target([ElementType.METHOD, ElementType.FIELD])
 public @interface RelayArgument {
 
-    public boolean nullable() default false
+    public boolean nullable() default true
 
     public String description() default ''
 
