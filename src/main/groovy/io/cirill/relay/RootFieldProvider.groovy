@@ -1,20 +1,16 @@
 package io.cirill.relay
 
+import com.sun.istack.internal.Nullable
 import graphql.Scalars
-import graphql.schema.GraphQLArgument
-import graphql.schema.GraphQLEnumType
-import graphql.schema.GraphQLFieldDefinition
-import graphql.schema.GraphQLInputType
-import graphql.schema.GraphQLList
-import graphql.schema.GraphQLObjectType
-import graphql.schema.TypeResolver
+import graphql.schema.*
 import io.cirill.relay.annotation.RelayArgument
+import io.cirill.relay.annotation.RelayEnum
+import io.cirill.relay.annotation.RelayQuery
 import io.cirill.relay.annotation.RelayType
-import org.grails.datastore.gorm.query.GormQueryOperations
 
 import java.lang.reflect.Method
+import java.lang.reflect.Parameter
 
-import static graphql.schema.GraphQLArgument.newArgument
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition
 
 /**
@@ -23,12 +19,7 @@ import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition
  */
 class RootFieldProvider {
 
-    private List<GraphQLArgument> singleArguments
-    private List<GraphQLArgument> pluralArguments
-
-    GraphQLFieldDefinition singleField
-    GraphQLFieldDefinition pluralField
-    GraphQLFieldDefinition[] otherFields
+    List<GraphQLFieldDefinition> fields
 
     private Map<Class, GraphQLEnumType> knownEnums
 
@@ -36,68 +27,45 @@ class RootFieldProvider {
 
         this.knownEnums = knownEnums
 
-        singleArguments = objectType.fieldDefinitions.collectMany { it.arguments }
-        singleArguments.addAll domainClass.declaredMethods
-                .findAll({ it.isAnnotationPresent(RelayArgument) })
-                .collect { buildArgument(it, domainClass) }
-
-        pluralArguments = singleArguments
-                .findAll { it.unique } // from metaclass
-                .collect { arg ->
-                    new GraphQLArgument(arg.name, arg.description, new GraphQLList(arg.type), null)
-                }
-
-        def singleFieldBuilder = newFieldDefinition()
-                .name(objectType.name.toLowerCase())
-                .description(objectType.description)
-                .type(objectType)
-                .argument(newArgument()
-                    .name('id')
-                    .description(RelayHelpers.DESCRIPTION_ID_ARGUMENT)
-                    .type(Scalars.GraphQLID)
-                    .build())
-
-        singleFieldBuilder.argument(singleArguments)
-        singleFieldBuilder.dataFetcher(new DefaultSingleDataFetcher(domainClass, singleArguments.collect({it.name})))
-        singleField = singleFieldBuilder.build()
-
-        def pluralName = domainClass.getAnnotation(RelayType).pluralName().toLowerCase()
-        def pluralFieldBuilder = newFieldDefinition()
-                .name(pluralName)
-                .description(objectType.description)
-                .type(new GraphQLList(objectType))
-                .argument(newArgument()
-                    .name('id')
-                    .description(RelayHelpers.DESCRIPTION_ID_ARGUMENT)
-                    .type(new GraphQLList(Scalars.GraphQLID))
-                    .build())
-
-        pluralFieldBuilder.argument(pluralArguments)
-        pluralFieldBuilder.dataFetcher(new DefaultPluralDataFetcher(domainClass, singleArguments.collect({it.name})))
-        pluralField = pluralFieldBuilder.build()
-
-        def namedQueries = domainClass.metaClass.properties.findAll({it.type == GormQueryOperations})
-        otherFields = namedQueries.collect { query ->
-            boolean isPlural = query.name.startsWith(pluralName)
-            newFieldDefinition()
-                .name(query.name)
-                .type(isPlural ? new GraphQLList(objectType) : objectType)
-                .dataFetcher({ env -> isPlural ? domainClass."$query.name".list() : domainClass."$query.name".get() })
-                .build()
-        }
+        fields = domainClass.getDeclaredMethods()
+            .findAll({ it.isAnnotationPresent(RelayQuery) && it.returnType == domainClass })
+            .collectMany({ method ->
+                [
+                        newFieldDefinition()
+                            .name(method.name)
+                            .description(method.getAnnotation(RelayQuery).description())
+                            .type(objectType)
+                            .argument(buildArguments(method, domainClass))
+                            .dataFetcher(new DefaultSingleDataFetcher(domainClass, method))
+                            .build()
+                ,
+                        newFieldDefinition()
+                            .name(method.getAnnotation(RelayQuery).pluralName())
+                            .description(method.getAnnotation(RelayQuery).description())
+                            .type(new GraphQLList(objectType))
+                            .argument(buildArguments(method, domainClass, true))
+                            .dataFetcher(new DefaultPluralDataFetcher(domainClass, method))
+                            .build()
+                ]
+            })
     }
 
-    private GraphQLArgument buildArgument(Method method, Class clazz) {
-        if (method.parameterCount != 1) {
-            throw new Exception('Argument ' + method.name + ' must have only one parameter')
-        }
-
+    private List<GraphQLArgument> buildArguments(Method method, Class clazz, boolean plural = false) {
         if (method.returnType != clazz) {
             throw new Exception('Argument ' + method.name + ' must return type ' + clazz.name)
         }
 
+        if (method.parameters.any { param -> !param.isAnnotationPresent(RelayArgument)}) {
+            throw new Exception('Parameters for relay query fields must use the @RelayArgument annotation: ' + method.name)
+        }
+
+        method.getParameters().collect { buildArgument(it, plural) }
+    }
+
+    private GraphQLArgument buildArgument(Parameter param, boolean plural) {
+
         def type
-        switch (method.parameterTypes[0]) {
+        switch (param.type) {
             case int:
             case Integer:
                 type = Scalars.GraphQLInt
@@ -123,17 +91,16 @@ class RootFieldProvider {
                 break
 
             default:
-                if (method.parameterTypes[0].isAnnotationPresent(RelayType) && Enum.isAssignableFrom(method.parameterTypes[0])) {
-                    type = knownEnums[method.parameterTypes[0]]
+                if (param.type.isAnnotationPresent(RelayEnum) && Enum.isAssignableFrom(param.type)) {
+                    type = knownEnums[param.type]
                 } else {
-                    throw new Exception('Illegal return type ' + method.returnType)
+                    throw new Exception('Illegal parameter type ' + param.type)
                 }
         }
 
-        boolean isArgumentUnique = method.getAnnotation(RelayArgument).unique()
-        boolean isArgumentNullable = method.getAnnotation(RelayArgument).nullable()
-        String argumentDescription = method.getAnnotation(RelayArgument).description()
-
-        RelayHelpers.makeArgument(method.name, type, argumentDescription, isArgumentNullable, isArgumentUnique)
+        boolean isArgumentNullable = param.getAnnotation(RelayArgument).nullable()
+        String argumentDescription = param.getAnnotation(RelayArgument).description()
+        String name = param.getAnnotation(RelayArgument).name()
+        RelayHelpers.makeArgument(name, plural ? new GraphQLList(type) : type, argumentDescription, isArgumentNullable)
     }
 }

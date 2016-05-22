@@ -2,6 +2,7 @@ package io.cirill.relay
 
 import grails.gorm.CriteriaBuilder
 import io.cirill.relay.annotation.RelayArgument
+import io.cirill.relay.annotation.RelayQuery
 import io.cirill.relay.annotation.RelayField
 import io.cirill.relay.annotation.RelayType
 
@@ -9,7 +10,7 @@ import io.cirill.relay.annotation.RelayType
  * Created by mcirillo on 2/15/16.
  */
 
-@RelayType(description = 'A person', pluralName = 'persons')
+@RelayType(description = 'A person')
 class Person {
 
     static namedQueries = {
@@ -26,11 +27,9 @@ class Person {
     }
 
     @RelayField(description = 'A person\'s name')
-    @RelayArgument(description = 'A person\'s name', unique = false)
     String name
 
     @RelayField
-    @RelayArgument(description = 'A person\'s age', unique = false)
     int age
 
     //String notRelayField
@@ -41,9 +40,12 @@ class Person {
 //    @RelayField
 //    List<Pet> pets
 
-    @RelayArgument(unique = true)
-    static Person singleByNameLike(String name) {
-        findByNameIlike(name)
+    @RelayQuery(pluralName = 'singleByNamesLike')
+    static Person singleByNameLike(
+            @RelayArgument(name = 'name') String name,
+            @RelayArgument(name = 'age') int age
+    ) {
+        findAllByNameIlike(name).find { it.age == age }
     }
 
     static byCriteria() {

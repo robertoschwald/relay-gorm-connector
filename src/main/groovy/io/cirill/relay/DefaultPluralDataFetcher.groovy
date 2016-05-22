@@ -4,48 +4,37 @@ import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import io.cirill.relay.annotation.RelayArgument
 
+import java.lang.reflect.Method
+import java.lang.reflect.Parameter
+
 /**
  * Created by mcirillo on 2/25/16.
  */
 public class DefaultPluralDataFetcher implements DataFetcher {
 
     private Class domain
-    private Map argumentIsMethod
+    private List<Parameter> params
+    private String name
 
-    public DefaultPluralDataFetcher(Class domainClass, List<String> argNames) {
-       domain = domainClass
-
-        argumentIsMethod = domain.getDeclaredFields()
-                .findAll { argNames.contains(it.name) }
-                .collectEntries { [it.name, false] }
-        argumentIsMethod.putAll domain.getDeclaredMethods()
-                .findAll { argNames.contains(it.name) }
-                .collectEntries { [it.name, true] }
-    }
-
-    def getForArgument(String name, Object value) {
-        if (argumentIsMethod.keySet().contains(name)) {
-            if (argumentIsMethod[name]) {
-                return domain."$name"(value)
-            } else {
-                return domain."findBy${name.capitalize()}"(value)
-            }
-        } else if (name == 'id') {
-            return domain.findById(RelayHelpers.fromGlobalId(value as String).id)
-        }
+    public DefaultPluralDataFetcher(Class domainClass, Method method) {
+        domain = domainClass
+        params = method.parameters
+        name = method.name
     }
 
     @Override
     Object get(DataFetchingEnvironment environment) {
-        def results = environment.arguments
-                .findAll { it.value != null }
-                .collectMany { args ->
-                    args.value.asType(List).collect { arg ->
-                        getForArgument(args.key, arg)
-                    } .reverse() }
-                .flatten()
-                .reverse()
-
-        return results
+        def totalArgs = environment.arguments.collectMany({ it.value.asType(Collection) }).size()
+        if (environment.arguments.any({ totalArgs % it.value.asType(Collection).size() != 0 })) {
+            throw new Exception('Plural argument lengths do not match: ' + environment.arguments)
+        } else {
+            (0..<(totalArgs / environment.arguments.size())).collect { i ->
+                def argSet = params.collect { param ->
+                    String paramName = param.getAnnotation(RelayArgument).name()
+                    environment.arguments[paramName as String].asType(Collection).getAt(i as Integer).asType(param.type)
+                }
+                domain.invokeMethod(name, argSet as Object[])
+            }
+        }
     }
 }

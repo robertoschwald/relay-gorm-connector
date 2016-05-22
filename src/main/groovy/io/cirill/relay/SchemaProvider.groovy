@@ -2,7 +2,6 @@ package io.cirill.relay
 
 import graphql.Scalars
 import graphql.schema.*
-import io.cirill.relay.annotation.RelayArgument
 import io.cirill.relay.annotation.RelayEnum
 import io.cirill.relay.annotation.RelayEnumField
 import io.cirill.relay.annotation.RelayField
@@ -33,7 +32,7 @@ public class SchemaProvider {
         nodeInterface = RelayHelpers.nodeInterface(typeResolver)
 
         // be sure the relay annotation is present
-        if (domainClasses.any({ !it.isAnnotationPresent(RelayType)} )){
+        if (domainClasses.any({ !it.isAnnotationPresent(RelayType) })) {
             throw new Exception("Invalid relay type ${domainClasses.find({!it.isAnnotationPresent(RelayType)}).name}")
         }
 
@@ -55,9 +54,7 @@ public class SchemaProvider {
 
         typeResolve.each { domainObj, gqlObj ->
             def rootFields = new RootFieldProvider(domainObj, gqlObj, enumResolve)
-            queryBuilder.field(rootFields.singleField)
-            queryBuilder.field(rootFields.pluralField)
-            rootFields.otherFields.each { queryBuilder.field(it) }
+            queryBuilder.fields(rootFields.getFields())
         }
 
         GraphQLSchema.newSchema().query(queryBuilder.build()).build()
@@ -81,12 +78,7 @@ public class SchemaProvider {
         // add fields/arguments to the graphQL object for each domain field tagged for Relay
         domainClass.declaredFields.findAll({ it.isAnnotationPresent(RelayField) }).each { domainClassField ->
 
-            boolean isArgument = domainClassField.getAnnotation(RelayArgument)
-            boolean isArgumentNullable = domainClassField.getAnnotation(RelayArgument)?.nullable()
-            boolean isArgumentUnique = domainClassField.getAnnotation(RelayArgument)?.unique()
-
             String fieldDescription = domainClassField.getAnnotation(RelayField).description()
-            String argumentDescription = domainClassField.getAnnotation(RelayArgument)?.description()
 
             def fieldBuilder = newFieldDefinition().name(domainClassField.name).description(fieldDescription)
             GraphQLScalarType scalarType
@@ -135,14 +127,6 @@ public class SchemaProvider {
                                 def obj = env.getSource()
                                 return obj."$domainClassField.name".toString()
                             })
-                            if (isArgument) {
-                                fieldBuilder.argument(RelayHelpers.makeArgument(
-                                        domainClassField.name,
-                                        gqlEnum,
-                                        argumentDescription,
-                                        isArgumentNullable,
-                                        isArgumentUnique))
-                            }
                         }
                     }
 
@@ -155,11 +139,6 @@ public class SchemaProvider {
                         fieldBuilder.dataFetcher({ env ->
                             env.source."$domainClassField.name"
                         })
-
-//                            if (isArgument) {
-//                                //fieldBuilder.argument(makeArgument(argumentName('Name'), Scalars.GraphQLString, true))
-//                                fieldBuilder.argument(makeArgument(argumentName('Id'), Scalars.GraphQLID, argumentDescription, false))
-//                            }
                     }
 
                     // field describes a connection
@@ -186,21 +165,13 @@ public class SchemaProvider {
                     }
             }
 
-            // build simple argument for Scalar types
+            // data fetching for scalar types
             if (scalarType) {
                 fieldBuilder.type(scalarType)
                 fieldBuilder.dataFetcher({ env ->
                     def obj = env.getSource()
                     return obj."$domainClassField.name"
                 })
-                if (isArgument) {
-                    fieldBuilder.argument(RelayHelpers.makeArgument(
-                            domainClassField.name,
-                            scalarType,
-                            argumentDescription,
-                            isArgumentNullable,
-                            isArgumentUnique))
-                }
             }
 
             objectBuilder.field(fieldBuilder.fetchField().build())

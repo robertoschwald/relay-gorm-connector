@@ -14,8 +14,6 @@ public @interface RelayType {
 
     public String description() default ''
 
-    public String pluralName()
-
 }
 
 @Retention(RetentionPolicy.RUNTIME)

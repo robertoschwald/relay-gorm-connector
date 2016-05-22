@@ -14,5 +14,18 @@ public @interface RelayQuery {
 
     public String description() default ''
 
-    public boolean isConnection() default false
+    public String pluralName()
+
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.PARAMETER)
+public @interface RelayArgument {
+
+    public String description() default ''
+
+    public String name()
+
+    public boolean nullable() default false
+
 }

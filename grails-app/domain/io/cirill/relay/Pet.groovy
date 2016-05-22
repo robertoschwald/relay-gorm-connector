@@ -1,6 +1,7 @@
 package io.cirill.relay
 
 import io.cirill.relay.annotation.RelayArgument
+import io.cirill.relay.annotation.RelayQuery
 import io.cirill.relay.annotation.RelayEnum
 import io.cirill.relay.annotation.RelayEnumField
 import io.cirill.relay.annotation.RelayField
@@ -9,7 +10,7 @@ import io.cirill.relay.annotation.RelayType
 /**
  * Created by mcirillo on 2/15/16.
  */
-@RelayType(pluralName = 'pets')
+@RelayType
 class Pet {
 
     static constraints = {}
@@ -24,14 +25,19 @@ class Pet {
     }
 
     @RelayField
-    @RelayArgument(description = 'A pet\'s name', unique = false)
     String name
 
 //    @RelayField
-//    @RelayArgument
+//    @RelayQuery
 //    Person owner
 
     @RelayField
-    @RelayArgument(description = 'A pet\'s species', unique = false)
     Species species
+
+    @RelayQuery(pluralName = 'bySpeciesPlural')
+    static Pet bySpecies(
+            @RelayArgument(name = 'species') Species species
+    ) {
+        findBySpecies(species)
+    }
 }
