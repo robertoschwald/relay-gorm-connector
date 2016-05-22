@@ -57,6 +57,7 @@ public class SchemaProvider {
             def rootFields = new RootFieldProvider(domainObj, gqlObj, enumResolve)
             queryBuilder.field(rootFields.singleField)
             queryBuilder.field(rootFields.pluralField)
+            rootFields.otherFields.each { queryBuilder.field(it) }
         }
 
         GraphQLSchema.newSchema().query(queryBuilder.build()).build()

@@ -12,7 +12,7 @@ import static io.cirill.relay.test.Helpers.mapsAreEqual
 class SchemaProviderSpec extends Specification {
 
     @spock.lang.Shared
-    private GraphQL qL = new GraphQL(new SchemaProvider({ e -> }, { e -> }, Person, Pet).schema)
+    private GraphQL qL = new GraphQL(new SchemaProvider({}).schema)
 
 
     def "Validate Relay Node Interface"() {
@@ -108,16 +108,16 @@ class SchemaProviderSpec extends Specification {
 //        fields == [[name: "node", type: [name: "Pet", kind: "OBJECT", ofType: null]], [name: "cursor", type: [name: null, kind: "NON_NULL", ofType: [name: "String", kind: "SCALAR"]]]]
 //    }
 
-    def "Validate schema"() {
-        given:
-        def query =  Shared.QUERY_SCHEMA_QUERYTYPE_FIELDS
-        Map expected = Shared.EXPECTED_SCHEMA_QUERYTYPE_FIELDS
-
-
-        when:
-        def result = qL.execute query
-
-        then:
-        assert mapsAreEqual(result.data as Map, expected)
-    }
+//    def "Validate schema"() {
+//        given:
+//        def query =  Shared.QUERY_SCHEMA_QUERYTYPE_FIELDS
+//        Map expected = Shared.EXPECTED_SCHEMA_QUERYTYPE_FIELDS
+//
+//
+//        when:
+//        def result = qL.execute query
+//
+//        then:
+//        assert mapsAreEqual(result.data as Map, expected)
+//    }
 }

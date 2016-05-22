@@ -1,5 +1,6 @@
 package io.cirill.relay
 
+import grails.gorm.CriteriaBuilder
 import io.cirill.relay.annotation.RelayArgument
 import io.cirill.relay.annotation.RelayField
 import io.cirill.relay.annotation.RelayType
@@ -10,6 +11,15 @@ import io.cirill.relay.annotation.RelayType
 
 @RelayType(description = 'A person', pluralName = 'persons')
 class Person {
+
+    static namedQueries = {
+        peopleNamedBill {
+            eq('name', 'Bill')
+        }
+        personsGtAge { anage ->
+            ge('age', anage)
+        }
+    }
 
     static constraints = {
 
@@ -34,5 +44,13 @@ class Person {
     @RelayArgument(unique = true)
     static Person singleByNameLike(String name) {
         findByNameIlike(name)
+    }
+
+    static byCriteria() {
+        def eq = "eq"
+        CriteriaBuilder c = Person.createCriteria()
+        c.list {
+            "$eq"('name', 'Bill')
+        }
     }
 }

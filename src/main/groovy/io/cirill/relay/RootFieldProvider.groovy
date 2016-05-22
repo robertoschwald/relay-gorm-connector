@@ -10,6 +10,7 @@ import graphql.schema.GraphQLObjectType
 import graphql.schema.TypeResolver
 import io.cirill.relay.annotation.RelayArgument
 import io.cirill.relay.annotation.RelayType
+import org.grails.datastore.gorm.query.GormQueryOperations
 
 import java.lang.reflect.Method
 
@@ -27,6 +28,7 @@ class RootFieldProvider {
 
     GraphQLFieldDefinition singleField
     GraphQLFieldDefinition pluralField
+    GraphQLFieldDefinition[] otherFields
 
     private Map<Class, GraphQLEnumType> knownEnums
 
@@ -59,8 +61,9 @@ class RootFieldProvider {
         singleFieldBuilder.dataFetcher(new DefaultSingleDataFetcher(domainClass, singleArguments.collect({it.name})))
         singleField = singleFieldBuilder.build()
 
+        def pluralName = domainClass.getAnnotation(RelayType).pluralName().toLowerCase()
         def pluralFieldBuilder = newFieldDefinition()
-                .name(domainClass.getAnnotation(RelayType).pluralName().toLowerCase())
+                .name(pluralName)
                 .description(objectType.description)
                 .type(new GraphQLList(objectType))
                 .argument(newArgument()
@@ -72,6 +75,16 @@ class RootFieldProvider {
         pluralFieldBuilder.argument(pluralArguments)
         pluralFieldBuilder.dataFetcher(new DefaultPluralDataFetcher(domainClass, singleArguments.collect({it.name})))
         pluralField = pluralFieldBuilder.build()
+
+        def namedQueries = domainClass.metaClass.properties.findAll({it.type == GormQueryOperations})
+        otherFields = namedQueries.collect { query ->
+            boolean isPlural = query.name.startsWith(pluralName)
+            newFieldDefinition()
+                .name(query.name)
+                .type(isPlural ? new GraphQLList(objectType) : objectType)
+                .dataFetcher({ env -> isPlural ? domainClass."$query.name".list() : domainClass."$query.name".get() })
+                .build()
+        }
     }
 
     private GraphQLArgument buildArgument(Method method, Class clazz) {

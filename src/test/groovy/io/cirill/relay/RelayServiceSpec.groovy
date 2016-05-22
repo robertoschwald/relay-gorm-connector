@@ -17,8 +17,7 @@ import io.cirill.relay.Pet.Species
 class RelayServiceSpec extends Specification {
 
     @Shared
-    Relay relay = new Relay()
-    def toID = { type, id -> relay.toGlobalId(type as String, id as String) }
+    def toID = { type, id -> RelayHelpers.toGlobalId(type as String, id as String) }
 
     def "Add and retrieve a person directly"() {
         given:
@@ -102,5 +101,24 @@ class RelayServiceSpec extends Specification {
         result.errors == []
         result.data?.persons[0]?.name == bill.name
         result.data?.persons[1]?.name == steve.name
+    }
+
+    def "Test static 'named query'"() {
+        given:
+        def bill = new Person(name:'Bill', age: 10)
+        def steve = new Person(name:'Steve', age: 10)
+        [steve, bill]*.save(flush:true)
+
+        def query = "{ peopleNamedBill { id name } }"
+        def query2 = "{ personsGtAge { id name } }"
+
+        when:
+        def result = service.query(query)
+        def result2 = service.query(query2)
+
+        then:
+        result.errors == []
+        result.data?.peopleNamedBill?.id == toID('Person', bill.id)
+        result.data?.peopleNamedBill?.name == bill.name
     }
 }

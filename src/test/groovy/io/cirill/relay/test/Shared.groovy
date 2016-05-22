@@ -2,6 +2,7 @@ package io.cirill.relay.test
 
 import io.cirill.relay.Person
 import io.cirill.relay.Pet
+import io.cirill.relay.RelayHelpers
 import io.cirill.relay.SchemaProvider
 
 /**
@@ -12,7 +13,7 @@ public class Shared {
     public final static String DESC_TYPE_PERSON = 'A person'
     public final static String DESC_TYPE_PERSON_NAME = 'A person\'s name'
     public final static String DESC_ARGUMENT_BESTFRIEND = 'Best friend\'s id'
-    public final static String DESC_ARGUMENT_ID = SchemaProvider.DESCRIPTION_ID_ARGUMENT
+    public final static String DESC_ARGUMENT_ID = RelayHelpers.DESCRIPTION_ID_ARGUMENT
 
     public final static String QUERY_SCHEMA_QUERYTYPE_FIELDS =
             """
