@@ -35,16 +35,12 @@ class RelayServiceSpec extends Specification {
         bill.save(flush: true)
 
         def id = toID('Person', bill.id)
-        //def query = "{ person(id: \"$id\") { id name } }" // when the type of the node is known
         def query2 = "{ person: node(id: \"$id\") { id ... on Person { name } } }" // when the type of the node is unkown
 
         when:
-        //def result = service.query(query)
         def result2 = service.query(query2)
 
         then:
-//        result.data?.person?.id == id
-//        result.data?.person?.id == result2.data?.person?.id
         result2.data?.person?.name == result2.data?.person?.name
     }
 
@@ -53,7 +49,6 @@ class RelayServiceSpec extends Specification {
         def cal = new Pet(name:'Cal', species: Species.Cat)
         cal.save(flush:true)
 
-        def id = toID('Pet', cal.id)
         def queryByEnum = """{ bySpecies(species: $cal.species) { name }}"""
 
         when:
@@ -86,14 +81,31 @@ class RelayServiceSpec extends Specification {
         def steve = new Person(name:'Steve', age:12)
         [bill, steve]*.save(flush:true)
 
-        def query = "{ singleByNamesLike(name: [\"$bill.name\", \"$steve.name\"], age: [10,12]) { id }}"
+        def query = "{ findByNameWithAges(name: [\"$bill.name\", \"$steve.name\"], age: [10,12]) { id }}"
 
         when:
         def result = service.query(query)
 
         then:
         result.errors == []
-        result.data?.singleByNamesLike[0]?.id == toID('Person', bill.id)
-        result.data?.singleByNamesLike[1]?.id == toID('Person', steve.id)
+        result.data?.findByNameWithAges[0]?.id == toID('Person', bill.id)
+        result.data?.findByNameWithAges[1]?.id == toID('Person', steve.id)
+    }
+
+    def "List query"() {
+        given:
+        def cal = new Pet(name:'Cal', species: Species.Cat)
+        def snoop = new Pet(name:'Snoopy', species: Species.Dog)
+        def bill = new Person(name:'Bill', age:10, pets: [cal, snoop])
+        [cal, snoop]*.owner = bill
+        [cal, snoop, bill]*.save(flush: true)
+
+        def query = "{ node(id: \"${toID('Person', bill.id)}\") { ... on Person { pets { name, species }}}}"
+
+        when:
+        def result = service.query(query)
+
+        then:
+        result.errors == []
     }
 }

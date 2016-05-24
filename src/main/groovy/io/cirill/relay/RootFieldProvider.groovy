@@ -1,12 +1,10 @@
 package io.cirill.relay
 
-import com.sun.istack.internal.Nullable
 import graphql.Scalars
 import graphql.schema.*
 import io.cirill.relay.annotation.RelayArgument
 import io.cirill.relay.annotation.RelayEnum
 import io.cirill.relay.annotation.RelayQuery
-import io.cirill.relay.annotation.RelayType
 
 import java.lang.reflect.Method
 import java.lang.reflect.Parameter
@@ -30,7 +28,11 @@ class RootFieldProvider {
         fields = domainClass.getDeclaredMethods()
             .findAll({ it.isAnnotationPresent(RelayQuery) && it.returnType == domainClass })
             .collectMany({ method ->
-                [
+                if (method.name == method.getAnnotation(RelayQuery).pluralName()) {
+                    throw new Exception('Plural root name is the same as the single root name ' + method.name)
+                }
+
+                def ret = [
                         newFieldDefinition()
                             .name(method.name)
                             .description(method.getAnnotation(RelayQuery).description())
@@ -38,15 +40,18 @@ class RootFieldProvider {
                             .argument(buildArguments(method, domainClass))
                             .dataFetcher(new DefaultSingleDataFetcher(domainClass, method))
                             .build()
-                ,
-                        newFieldDefinition()
+                ]
+
+                if (method.getAnnotation(RelayQuery).pluralName()) {
+                    ret << newFieldDefinition()
                             .name(method.getAnnotation(RelayQuery).pluralName())
                             .description(method.getAnnotation(RelayQuery).description())
                             .type(new GraphQLList(objectType))
                             .argument(buildArguments(method, domainClass, true))
                             .dataFetcher(new DefaultPluralDataFetcher(domainClass, method))
                             .build()
-                ]
+                }
+                return ret
             })
     }
 

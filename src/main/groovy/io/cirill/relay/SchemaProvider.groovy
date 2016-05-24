@@ -153,11 +153,16 @@ public class SchemaProvider {
                         }
 
                         // TODO implement SimpleConnection
-//                        List<GraphQLFieldDefinition> args = new ArrayList<>()
-//                        def typeForEdge = new GraphQLTypeReference(genericType.simpleName)
+                        List<GraphQLFieldDefinition> args = new ArrayList<>()
+                        def typeForEdge = new GraphQLTypeReference(genericType.simpleName)
 //                        GraphQLObjectType edgeType = relay.edgeType(typeForEdge.name, typeForEdge, nodeInterface, args)
 //                        GraphQLObjectType connectionType = relay.connectionType(typeForEdge.name, edgeType, args)
 //                        fieldBuilder.type(connectionType)
+                        fieldBuilder.type(new GraphQLList(typeForEdge))
+                        fieldBuilder.dataFetcher({ env ->
+                            def obj = env.getSource()
+                            return obj."$domainClassField.name"
+                        })
                     }
 
                     else {

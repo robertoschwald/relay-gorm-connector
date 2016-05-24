@@ -13,7 +13,9 @@ import io.cirill.relay.annotation.RelayType
 @RelayType
 class Pet {
 
-    static constraints = {}
+    static constraints = {
+        owner nullable: true
+    }
 
     @RelayEnum()
     public enum Species {
@@ -27,9 +29,8 @@ class Pet {
     @RelayField
     String name
 
-//    @RelayField
-//    @RelayQuery
-//    Person owner
+    @RelayField
+    Person owner
 
     @RelayField
     Species species
