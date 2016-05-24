@@ -5,9 +5,11 @@ import graphql.schema.*
 import io.cirill.relay.annotation.RelayArgument
 import io.cirill.relay.annotation.RelayEnum
 import io.cirill.relay.annotation.RelayQuery
+import io.cirill.relay.annotation.RelayType
 
 import java.lang.reflect.Method
 import java.lang.reflect.Parameter
+import java.lang.reflect.ParameterizedType
 
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition
 
@@ -26,17 +28,19 @@ class RootFieldProvider {
         this.knownEnums = knownEnums
 
         fields = domainClass.getDeclaredMethods()
-            .findAll({ it.isAnnotationPresent(RelayQuery) && it.returnType == domainClass })
+            .findAll({ it.isAnnotationPresent(RelayQuery) })
             .collectMany({ method ->
                 if (method.name == method.getAnnotation(RelayQuery).pluralName()) {
                     throw new Exception('Plural root name is the same as the single root name ' + method.name)
                 }
 
+                boolean isList = method.returnType.isAssignableFrom(List)
+
                 def ret = [
                         newFieldDefinition()
                             .name(method.name)
                             .description(method.getAnnotation(RelayQuery).description())
-                            .type(objectType)
+                            .type(isList ? new GraphQLList(objectType) : objectType)
                             .argument(buildArguments(method, domainClass))
                             .dataFetcher(new DefaultSingleDataFetcher(domainClass, method))
                             .build()
@@ -46,7 +50,7 @@ class RootFieldProvider {
                     ret << newFieldDefinition()
                             .name(method.getAnnotation(RelayQuery).pluralName())
                             .description(method.getAnnotation(RelayQuery).description())
-                            .type(new GraphQLList(objectType))
+                            .type(isList ? new GraphQLList(new GraphQLList(objectType)) : new GraphQLList(objectType))
                             .argument(buildArguments(method, domainClass, true))
                             .dataFetcher(new DefaultPluralDataFetcher(domainClass, method))
                             .build()
@@ -57,7 +61,14 @@ class RootFieldProvider {
 
     private List<GraphQLArgument> buildArguments(Method method, Class clazz, boolean plural = false) {
         if (method.returnType != clazz) {
-            throw new Exception('Argument ' + method.name + ' must return type ' + clazz.name)
+            if (method.returnType.isAssignableFrom(List)) {
+                def genericType = Class.forName(method.annotatedReturnType.type.actualTypeArguments.first().typeName as String)
+                if (!genericType.isAnnotationPresent(RelayType)) {
+                    throw new Exception("Illegal relay type $genericType.simpleName for list at ${clazz.name + '.' + method.name}")
+                }
+            } else {
+                throw new Exception('Argument ' + method.name + ' must return type ' + clazz.name)
+            }
         }
 
         if (method.parameters.any { param -> !param.isAnnotationPresent(RelayArgument)}) {

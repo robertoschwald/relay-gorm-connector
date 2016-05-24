@@ -14,7 +14,7 @@ public @interface RelayQuery {
 
     public String description() default ''
 
-    public String pluralName()
+    public String pluralName() default ''
 
 }
 

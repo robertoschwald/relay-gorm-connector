@@ -92,7 +92,7 @@ class RelayServiceSpec extends Specification {
         result.data?.findByNameWithAges[1]?.id == toID('Person', steve.id)
     }
 
-    def "List query"() {
+    def "List field"() {
         given:
         def cal = new Pet(name:'Cal', species: Species.Cat)
         def snoop = new Pet(name:'Snoopy', species: Species.Dog)
@@ -107,5 +107,24 @@ class RelayServiceSpec extends Specification {
 
         then:
         result.errors == []
+        result.data.node?.pets[0]?.name == cal.name
+        result.data.node?.pets[1]?.name == snoop.name
+    }
+
+    def "Query for list"() {
+        given:
+        def cal = new Pet(name:'Cal', species: Species.Cat)
+        def snoop = new Pet(name:'Snoopy', species: Species.Cat)
+        [cal, snoop]*.save(flush: true)
+
+        def query = "{ bySpecies(species: Cat) { name }}"
+
+        when:
+        def result = service.query query
+
+        then:
+        result.errors == []
+        result.data.bySpecies[0]?.name == cal.name
+        result.data.bySpecies[1]?.name == snoop.name
     }
 }

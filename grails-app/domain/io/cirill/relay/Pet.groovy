@@ -35,10 +35,10 @@ class Pet {
     @RelayField
     Species species
 
-    @RelayQuery(pluralName = 'bySpeciesPlural')
-    static Pet bySpecies(
+    @RelayQuery
+    static List<Pet> bySpecies(
             @RelayArgument(name = 'species') Species species
     ) {
-        findBySpecies(species)
+        findAllBySpecies(species)
     }
 }
