@@ -56,7 +56,7 @@ class RelayServiceSpec extends Specification {
 
         then:
         resultByEnum.errors == []
-        resultByEnum.data?.bySpecies?.name == cal.name
+        resultByEnum.data?.bySpecies[0]?.name == cal.name
     }
 
     def "Get nested field data"() {
@@ -81,7 +81,7 @@ class RelayServiceSpec extends Specification {
         def steve = new Person(name:'Steve', age:12)
         [bill, steve]*.save(flush:true)
 
-        def query = "{ findByNameWithAges(name: [\"$bill.name\", \"$steve.name\"], age: [10,12]) { id }}"
+        def query = "{ findByNameWithAges(age: [10,12], name: [\"$bill.name\", \"$steve.name\"]) { id }}"
 
         when:
         def result = service.query(query)
@@ -126,5 +126,31 @@ class RelayServiceSpec extends Specification {
         result.errors == []
         result.data.bySpecies[0]?.name == cal.name
         result.data.bySpecies[1]?.name == snoop.name
+    }
+
+    def "Add via static method"() {
+        given:
+        String name = 'Steven'
+        int age = 123
+
+        when:
+        def relayID = toID('Person', Person.addPerson(name, age).id)
+
+        then:
+        name == Person.findById(RelayHelpers.fromGlobalId(relayID).id as Long).name
+    }
+
+    def "Add via mutation query"() {
+        given:
+        def mutationId = '1234'
+        def query = "mutation { addPerson(input: {name: \"Steve\", age: 10, clientMutationId: \"$mutationId\"}) { id clientMutationId } }"
+
+        when:
+        def result = service.query query
+
+	    then:
+	    result.errors == []
+	    result.data.addPerson.id == toID('Person', 1)
+	    result.data.addPerson.clientMutationId == mutationId
     }
 }

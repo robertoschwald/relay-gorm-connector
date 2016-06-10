@@ -5,9 +5,6 @@ import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
 
-/**
- * Created by mcirillo on 2/16/16.
- */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface RelayQuery {
@@ -27,5 +24,21 @@ public @interface RelayArgument {
     public String name()
 
     public boolean nullable() default false
+
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface RelayMutation {
+
+    public String[] output()
+
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.PARAMETER)
+public @interface RelayMutationInput {
+
+    public String name()
 
 }

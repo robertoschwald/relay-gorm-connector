@@ -4,22 +4,23 @@ import grails.plugins.*
 class RelayGormConnectorGrailsPlugin extends Plugin {
 
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "3.0.8 > *"
+    def grailsVersion = "3.1.6 > *"
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
-            "**/controllers/**",
-            "**/domain/**",
-            "**/init/**",
-            "**/views/**",
+            "**/Pet**",
+            "**/Person**",
+            "**/Application**",
+            "**gsp**",
             "**/test/**",
-            "**/integration-test/**"
+            "**/integration-test/**",
+            "**/views/**"
     ]
 
     def title = "Relay Gorm Connector" // Headline display name of the plugin
     def author = "Matt Cirillo"
     def authorEmail = "misterzirillo@gmail.com"
     def description = '''\
-        Translate Relay-style graphQL queries to GORM.
+        Translate Relay-style graphQL queries to GORM domain classes.
     '''
     def profiles = ['web']
 

@@ -71,3 +71,13 @@ dependencies {
 task wrapper(type: Wrapper) {
     gradleVersion = gradleWrapperVersion
 }
+
+jar {
+    exclude "**/Person**"
+    exclude "**/Pet**"
+    exclude "**/Application**"
+    exclude "**gsp**"
+    exclude "**/test/**"
+    exclude "**/integration-test/**"
+    exclude "**/views/**"
+}

@@ -49,7 +49,7 @@ public class SchemaProvider {
 
     private GraphQLSchema buildSchema() {
         def queryBuilder = newObject()
-                .name('RelayQuery')
+                .name('queryType')
                 .field(RelayHelpers.nodeField(nodeInterface, nodeDataFetcher))
 
         typeResolve.each { domainObj, gqlObj ->
@@ -57,7 +57,14 @@ public class SchemaProvider {
             queryBuilder.fields(rootFields.getFields())
         }
 
-        GraphQLSchema.newSchema().query(queryBuilder.build()).build()
+	    def mutationBuilder = newObject().name('mutationType')
+
+	    typeResolve.each { domainObj, gqlObj ->
+		    def mutations = new DefaultMutationProvider(domainObj, gqlObj, enumResolve)
+		    mutationBuilder.fields(mutations.mutations)
+	    }
+
+        GraphQLSchema.newSchema().query(queryBuilder.build()).mutation(mutationBuilder.build()).build()
     }
 
     private GraphQLObjectType classToGQLObject(Class domainClass) {

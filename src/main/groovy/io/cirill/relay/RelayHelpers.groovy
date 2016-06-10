@@ -2,13 +2,7 @@ package io.cirill.relay
 
 import graphql.relay.Relay
 import graphql.relay.Relay.ResolvedGlobalId
-import graphql.schema.DataFetcher
-import graphql.schema.GraphQLArgument
-import graphql.schema.GraphQLFieldDefinition
-import graphql.schema.GraphQLInputType
-import graphql.schema.GraphQLInterfaceType
-import graphql.schema.GraphQLNonNull
-import graphql.schema.TypeResolver
+import graphql.schema.*
 import groovy.transform.CompileStatic
 
 import static graphql.schema.GraphQLArgument.newArgument
@@ -40,12 +34,14 @@ class RelayHelpers {
     }
 
     public static GraphQLArgument makeArgument(String name, GraphQLInputType type, String description, boolean isNullable) {
-        def arg = newArgument().name(name).type(isNullable ? type : nonNull(type)).description(description).build()
-        return arg
+        newArgument().name(name).type(isNullable ? type : nonNull(type)).description(description).build()
     }
 
     public static GraphQLNonNull nonNull(GraphQLInputType obj) {
         new GraphQLNonNull(obj)
     }
 
+    public static GraphQLFieldDefinition makeMutation(String name, String fieldname, List<GraphQLInputObjectField> inputFields, List<GraphQLFieldDefinition> outputFields, DataFetcher datafetcher) {
+        relay.mutationWithClientMutationId(name, fieldname, inputFields, outputFields, datafetcher)
+    }
 }
