@@ -6,15 +6,10 @@ import graphql.GraphQL
 import graphql.schema.DataFetcher
 import io.cirill.relay.annotation.RelayType
 
-/**
- * Created by mcirillo on 2/16/16.
- */
 public class RelayService {
 
     // injected
     GrailsApplication grailsApplication
-
-
 
     protected GraphQL graphQL
     protected SchemaProvider schemaProvider

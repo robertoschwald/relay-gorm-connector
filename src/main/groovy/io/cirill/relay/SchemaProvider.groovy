@@ -13,9 +13,6 @@ import static graphql.schema.GraphQLEnumType.newEnum
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition
 import static graphql.schema.GraphQLObjectType.newObject
 
-/**
- * Created by mcirillo on 12/15/15.
- */
 public class SchemaProvider {
 
     public Map<Class, GraphQLObjectType> typeResolve

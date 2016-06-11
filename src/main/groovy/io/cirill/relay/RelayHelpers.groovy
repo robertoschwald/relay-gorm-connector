@@ -7,9 +7,6 @@ import groovy.transform.CompileStatic
 
 import static graphql.schema.GraphQLArgument.newArgument
 
-/**
- * Created by mcirillo on 3/1/16.
- */
 @CompileStatic
 class RelayHelpers {
 
@@ -22,7 +19,7 @@ class RelayHelpers {
     }
 
     public static ResolvedGlobalId fromGlobalId(String id) {
-        relay.fromGlobalId(id)
+	    relay.fromGlobalId(id)
     }
 
     public static GraphQLInterfaceType nodeInterface(TypeResolver typeResolver) {

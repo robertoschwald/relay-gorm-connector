@@ -1,12 +1,7 @@
 package io.cirill.relay
 
 import graphql.Scalars
-import graphql.schema.DataFetcher
-import graphql.schema.GraphQLEnumType
-import graphql.schema.GraphQLFieldDefinition
-import graphql.schema.GraphQLInputObjectField
-import graphql.schema.GraphQLNonNull
-import graphql.schema.GraphQLObjectType
+import graphql.schema.*
 import io.cirill.relay.annotation.RelayEnum
 import io.cirill.relay.annotation.RelayMutation
 import io.cirill.relay.annotation.RelayMutationInput

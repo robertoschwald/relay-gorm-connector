@@ -4,13 +4,11 @@ import graphql.Scalars
 import graphql.schema.*
 import io.cirill.relay.annotation.RelayArgument
 import io.cirill.relay.annotation.RelayEnum
-import io.cirill.relay.annotation.RelayMutation
 import io.cirill.relay.annotation.RelayQuery
 import io.cirill.relay.annotation.RelayType
 
 import java.lang.reflect.Method
 import java.lang.reflect.Parameter
-import java.lang.reflect.ParameterizedType
 
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition
 

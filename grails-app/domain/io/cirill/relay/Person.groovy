@@ -1,15 +1,6 @@
 package io.cirill.relay
 
-import io.cirill.relay.annotation.RelayArgument
-import io.cirill.relay.annotation.RelayField
-import io.cirill.relay.annotation.RelayMutation
-import io.cirill.relay.annotation.RelayMutationInput
-import io.cirill.relay.annotation.RelayQuery
-import io.cirill.relay.annotation.RelayType
-
-/**
- * Created by mcirillo on 2/15/16.
- */
+import io.cirill.relay.annotation.*
 
 @RelayType(description = 'A person')
 class Person {

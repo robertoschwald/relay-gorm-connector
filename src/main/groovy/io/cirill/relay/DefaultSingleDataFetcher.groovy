@@ -7,9 +7,6 @@ import io.cirill.relay.annotation.RelayArgument
 import java.lang.reflect.Method
 import java.lang.reflect.Parameter
 
-/**
- * Created by mcirillo on 2/25/16.
- */
 public class DefaultSingleDataFetcher implements DataFetcher {
 
     private Class domain

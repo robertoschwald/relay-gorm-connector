@@ -1,11 +1,6 @@
 package io.cirill.relay
 
-import io.cirill.relay.annotation.RelayArgument
-import io.cirill.relay.annotation.RelayQuery
-import io.cirill.relay.annotation.RelayEnum
-import io.cirill.relay.annotation.RelayEnumField
-import io.cirill.relay.annotation.RelayField
-import io.cirill.relay.annotation.RelayType
+import io.cirill.relay.annotation.*
 
 /**
  * Created by mcirillo on 2/15/16.

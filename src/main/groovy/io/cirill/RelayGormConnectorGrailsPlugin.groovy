@@ -4,7 +4,7 @@ import grails.plugins.*
 class RelayGormConnectorGrailsPlugin extends Plugin {
 
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "3.1.6 > *"
+    def grailsVersion = "3.1.8 > *"
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
             "**/Pet**",
