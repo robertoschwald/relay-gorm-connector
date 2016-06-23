@@ -1,5 +1,6 @@
 package io.cirill.relay
 
+import graphql.GraphQL
 import graphql.Scalars
 import graphql.schema.*
 import io.cirill.relay.annotation.RelayEnum
@@ -17,7 +18,8 @@ public class SchemaProvider {
 
     public Map<Class, GraphQLObjectType> typeResolve
     public Map<Class, GraphQLEnumType> enumResolve
-    public GraphQLSchema schema
+
+    private GraphQLSchema schema
 
     private DataFetcher nodeDataFetcher
     private TypeResolver typeResolver = { object -> typeResolve[object.getClass()] }
@@ -43,6 +45,10 @@ public class SchemaProvider {
 
         schema = buildSchema()
     }
+
+	public GraphQL graphQL() {
+		new GraphQL(schema)
+	}
 
     private GraphQLSchema buildSchema() {
         def queryBuilder = newObject()
@@ -157,7 +163,7 @@ public class SchemaProvider {
                         }
 
                         // TODO implement SimpleConnection
-                        List<GraphQLFieldDefinition> args = new ArrayList<>()
+//                        List<GraphQLFieldDefinition> args = new ArrayList<>()
                         def typeForEdge = new GraphQLTypeReference(genericType.simpleName)
 //                        GraphQLObjectType edgeType = relay.edgeType(typeForEdge.name, typeForEdge, nodeInterface, args)
 //                        GraphQLObjectType connectionType = relay.connectionType(typeForEdge.name, edgeType, args)

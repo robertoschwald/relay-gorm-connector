@@ -8,7 +8,7 @@ buildscript {
 	}
 	dependencies {
 		classpath "org.grails:grails-gradle-plugin:$grailsVersion"
-		classpath "com.bertramlabs.plugins:asset-pipeline-gradle:2.8.2"
+		//classpath "com.bertramlabs.plugins:asset-pipeline-gradle:2.8.2"
 	}
 }
 
@@ -20,7 +20,7 @@ apply plugin:"idea"
 apply plugin:"org.grails.grails-plugin"
 apply plugin:"org.grails.grails-plugin-publish"
 apply plugin:"org.grails.grails-gsp"
-apply plugin:"asset-pipeline"
+//apply plugin:"asset-pipeline"
 
 ext {
     grailsVersion = project.grailsVersion
@@ -54,7 +54,7 @@ dependencies {
 	profile "org.grails.profiles:web-plugin:3.1.8"
 	provided "org.grails:grails-plugin-services"
 	provided "org.grails:grails-plugin-domain-class"
-	runtime "com.bertramlabs.plugins:asset-pipeline-grails:2.8.2"
+	//runtime "com.bertramlabs.plugins:asset-pipeline-grails:2.8.2"
 	testCompile "org.grails:grails-plugin-testing"
 	testCompile "org.grails.plugins:geb"
 	testRuntime "org.seleniumhq.selenium:selenium-htmlunit-driver:2.47.1"
@@ -93,6 +93,6 @@ grailsPublish {
     portalPassword = ""
 }
 
-assets {
-    packagePlugin = true
-}
+//assets {
+//	packagePlugin = true
+//}

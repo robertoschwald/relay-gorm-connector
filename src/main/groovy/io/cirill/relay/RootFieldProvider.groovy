@@ -1,6 +1,5 @@
 package io.cirill.relay
 
-import graphql.Scalars
 import graphql.schema.*
 import io.cirill.relay.annotation.RelayArgument
 import io.cirill.relay.annotation.RelayEnum
@@ -79,38 +78,12 @@ class RootFieldProvider {
 
     private GraphQLArgument buildArgument(Parameter param, boolean plural) {
 
-        def type
-        switch (param.type) {
-            case int:
-            case Integer:
-                type = Scalars.GraphQLInt
-                break
-
-            case String:
-                type = Scalars.GraphQLString
-                break
-
-            case boolean:
-            case Boolean:
-                type = Scalars.GraphQLBoolean
-                break
-
-            case float:
-            case Float:
-                type = Scalars.GraphQLFloat
-                break
-
-            case long:
-            case Long:
-                type = Scalars.GraphQLLong
-                break
-
-            default:
-                if (param.type.isAnnotationPresent(RelayEnum) && Enum.isAssignableFrom(param.type)) {
-                    type = knownEnums[param.type]
-                } else {
-                    throw new Exception('Illegal parameter type ' + param.type)
-                }
+        def type = RelayHelpers.parseGraphQLInputType param.type, {
+            if (param.type.isAnnotationPresent(RelayEnum) && Enum.isAssignableFrom(param.type)) {
+                knownEnums[param.type]
+            } else {
+                throw new Exception('Illegal parameter type ' + param.type)
+            }
         }
 
         boolean isArgumentNullable = param.getAnnotation(RelayArgument).nullable()

@@ -32,8 +32,12 @@ public class RelayService {
                     .collectEntries { [it.simpleName, it] }
 
             schemaProvider = new SchemaProvider(nodeDataFetcher as DataFetcher , getRelayDomain())
-            graphQL = new GraphQL(schemaProvider.schema)
+            graphQL = schemaProvider.graphQL()
         }
         graphQL.execute(query)
+    }
+
+    public ExecutionResult introspect() {
+        query RelayHelpers.INSTROSPECTION_QUERY
     }
 }
