@@ -1,6 +1,8 @@
 package io.cirill
 
 import grails.plugins.*
+import io.cirill.relay.RelayService
+
 class RelayGormConnectorGrailsPlugin extends Plugin {
 
     // the version or versions of Grails the plugin is designed for
@@ -55,10 +57,17 @@ class RelayGormConnectorGrailsPlugin extends Plugin {
         // TODO Implement post initialization spring config (optional)
     }
 
+    def influences = ['controllers']
+    def observe = ['domains']
+
     void onChange(Map<String, Object> event) {
-        // TODO Implement code that is executed when any artefact that this plugin is
-        // watching is modified and reloaded. The event contains: event.source,
-        // event.application, event.manager, event.ctx, and event.plugin.
+        if (event.source) {
+            beans {
+                relayService(RelayService.getClazz()) { bean ->
+                    bean.autowire =  true
+                }
+            }
+        }
     }
 
     void onConfigChange(Map<String, Object> event) {

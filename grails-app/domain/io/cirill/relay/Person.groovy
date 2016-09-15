@@ -37,7 +37,7 @@ class Person {
             @RelayMutationInput(name = 'age') int age
     ) {
         def person
-        Person.withTransaction { status ->
+        withTransaction { status ->
             person = new Person(name: name, age: age)
             person.save()
         }

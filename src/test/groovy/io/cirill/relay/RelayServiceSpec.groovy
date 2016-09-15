@@ -66,10 +66,10 @@ class RelayServiceSpec extends Specification {
         [bill, steve]*.save(flush:true)
 
         def id = toID('Person', steve.id)
-        def query = """{ node(id: \"$id\") { ... on Person { bestFriend { name }}}}"""
+        def query = """query { node(id: \"$id\") { ... on Person { bestFriend { name }}}}"""
 
         when:
-        def result = service.query(query)
+        def result = service.query(query, null, [:])
 
         then:
         result.data?.node?.bestFriend?.name == bill.name
@@ -117,10 +117,10 @@ class RelayServiceSpec extends Specification {
         def snoop = new Pet(name:'Snoopy', species: Species.Cat)
         [cal, snoop]*.save(flush: true)
 
-        def query = "{ bySpecies(species: Cat) { name }}"
+        def query = "query { Fuck:bySpecies(species: Cat) { name }}"
 
         when:
-        def result = service.query query
+        def result = service.query query, null, [:]
 
         then:
         result.errors == []

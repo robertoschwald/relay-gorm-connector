@@ -24,6 +24,7 @@ public class SchemaProvider {
     private DataFetcher nodeDataFetcher
     private TypeResolver typeResolver = { object -> typeResolve[object.getClass()] }
     private GraphQLInterfaceType nodeInterface
+    private GraphQL graphQL
 
     public SchemaProvider(DataFetcher ndf, Class... domainClasses) {
 
@@ -44,11 +45,10 @@ public class SchemaProvider {
         typeResolve = domainClasses.collectEntries { [it, classToGQLObject(it)] }
 
         schema = buildSchema()
+        graphQL = new GraphQL(schema)
     }
 
-	public GraphQL graphQL() {
-		new GraphQL(schema)
-	}
+	public GraphQL graphQL() { return graphQL }
 
     private GraphQLSchema buildSchema() {
         def queryBuilder = newObject()
@@ -60,7 +60,7 @@ public class SchemaProvider {
             queryBuilder.fields(rootFields.getFields())
         }
 
-	    def mutationBuilder = newObject().name('mutationType')
+	    def mutationBuilder = newObject().name('mutationType') // TODO
 
 	    typeResolve.each { domainObj, gqlObj ->
 		    def mutations = new DefaultMutationProvider(domainObj, gqlObj, enumResolve)

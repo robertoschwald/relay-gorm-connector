@@ -25,7 +25,7 @@ public class RelayService {
         domainArtefactCache."$decoded.type".findById decoded.id
     }
 
-    public ExecutionResult query(String query) {
+    public ExecutionResult query(String query, Object context, Map variables) {
         if (graphQL == null) {
             domainArtefactCache = grailsApplication.getArtefacts('Domain')*.clazz
                     .findAll({ it.isAnnotationPresent(RelayType) })
@@ -34,10 +34,10 @@ public class RelayService {
             schemaProvider = new SchemaProvider(nodeDataFetcher as DataFetcher , getRelayDomain())
             graphQL = schemaProvider.graphQL()
         }
-        graphQL.execute(query)
+        graphQL.execute(query, context, variables)
     }
 
     public ExecutionResult introspect() {
-        query RelayHelpers.INSTROSPECTION_QUERY
+        query RelayHelpers.INSTROSPECTION_QUERY, null, [:]
     }
 }

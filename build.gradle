@@ -12,7 +12,7 @@ buildscript {
 	}
 }
 
-version "0.2"
+version "0.2-2"
 group "io.cirill"
 
 apply plugin:"eclipse"
@@ -61,7 +61,7 @@ dependencies {
 	testRuntime "net.sourceforge.htmlunit:htmlunit:2.18"
 
     // graphql library
-    compile 'com.graphql-java:graphql-java:2.0.0'
+    compile 'com.graphql-java:graphql-java:2.1.0'
 }
 
 task wrapper(type: Wrapper) {
