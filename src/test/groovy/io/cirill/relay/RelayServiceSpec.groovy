@@ -35,10 +35,10 @@ class RelayServiceSpec extends Specification {
         bill.save(flush: true)
 
         def id = toID('Person', bill.id)
-        def query2 = "{ person: node(id: \"$id\") { id ... on Person { name } } }" // when the type of the node is unkown
+        def query2 = "{ person: node(id: \"$id\") { id ... on Person { name } } }" // when the type of the node is unknown
 
         when:
-        def result2 = service.query(query2)
+        def result2 = service.query(query2, null, [:])
 
         then:
         result2.data?.person?.name == result2.data?.person?.name
@@ -52,10 +52,9 @@ class RelayServiceSpec extends Specification {
         def queryByEnum = """{ bySpecies(species: $cal.species) { name }}"""
 
         when:
-        def resultByEnum = service.query(queryByEnum)
+        def resultByEnum = service.query(queryByEnum, null, [:])
 
         then:
-        resultByEnum.errors == []
         resultByEnum.data?.bySpecies[0]?.name == cal.name
     }
 
@@ -81,15 +80,14 @@ class RelayServiceSpec extends Specification {
         def steve = new Person(name:'Steve', age:12)
         [bill, steve]*.save(flush:true)
 
-        def query = "{ findByNameWithAges(age: [10,12], name: [\"$bill.name\", \"$steve.name\"]) { id }}"
+        def query = "{ findByNames(name: [\"$bill.name\", \"$steve.name\"]) { id }}"
 
         when:
-        def result = service.query(query)
+        def result = service.query(query, null, [:])
 
         then:
-        result.errors == []
-        result.data?.findByNameWithAges[0]?.id == toID('Person', bill.id)
-        result.data?.findByNameWithAges[1]?.id == toID('Person', steve.id)
+        result.data?.findByNames[0]?.id == toID('Person', bill.id)
+        result.data?.findByNames[1]?.id == toID('Person', steve.id)
     }
 
     def "List field"() {
@@ -103,10 +101,9 @@ class RelayServiceSpec extends Specification {
         def query = "{ node(id: \"${toID('Person', bill.id)}\") { ... on Person { pets { name, species }}}}"
 
         when:
-        def result = service.query(query)
+        def result = service.query(query, null, [:])
 
         then:
-        result.errors == []
         result.data.node?.pets[0]?.name == cal.name
         result.data.node?.pets[1]?.name == snoop.name
     }
@@ -117,13 +114,12 @@ class RelayServiceSpec extends Specification {
         def snoop = new Pet(name:'Snoopy', species: Species.Cat)
         [cal, snoop]*.save(flush: true)
 
-        def query = "query { Fuck:bySpecies(species: Cat) { name }}"
+        def query = "query { bySpecies(species: Cat) { name }}"
 
         when:
         def result = service.query query, null, [:]
 
         then:
-        result.errors == []
         result.data.bySpecies[0]?.name == cal.name
         result.data.bySpecies[1]?.name == snoop.name
     }
@@ -146,10 +142,9 @@ class RelayServiceSpec extends Specification {
         def query = "mutation { addPerson(input: {name: \"Steve\", age: 10, clientMutationId: \"$mutationId\"}) { id clientMutationId } }"
 
         when:
-        def result = service.query query
+        def result = service.query query, null, [:]
 
 	    then:
-	    result.errors == []
 	    result.data.addPerson.id == toID('Person', 1)
 	    result.data.addPerson.clientMutationId == mutationId
     }

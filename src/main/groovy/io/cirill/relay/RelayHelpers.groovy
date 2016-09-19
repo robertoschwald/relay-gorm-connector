@@ -78,7 +78,8 @@ class RelayHelpers {
 	    type
     }
 
-    public final static String INSTROSPECTION_QUERY =
+
+    public final static String INTROSPECTION_QUERY =
 """
 query IntrospectionQuery {
     __schema {

@@ -1,6 +1,9 @@
 package io.cirill.relay
 
+import graphql.schema.DataFetcher
+import graphql.schema.DataFetchingEnvironment
 import io.cirill.relay.annotation.*
+import io.cirill.relay.dsl.GQLFieldSpec
 
 /**
  * Created by mcirillo on 2/15/16.
@@ -12,13 +15,27 @@ class Pet {
         owner nullable: true
     }
 
-    @RelayEnum()
-    public enum Species {
-        @RelayEnumField
-        Cat,
+    static relayRoots = {[
+            GQLFieldSpec.field {
+                name 'bySpecies'
+                argument {
+                    name 'species'
+                    type SchemaProvider.GLOBAL_ENUM_RESOLVE[Species]
+                    nullable false
+                }
+                type {
+                    list {
+                        ref 'Pet'
+                    }
+                }
+                dataFetcher new BySpeciesDataFetcher()
+            }
+    ]}
 
-        @RelayEnumField
-        Dog,
+    @RelayEnum
+    public enum Species {
+        Cat,
+        Dog
     }
 
     @RelayField
@@ -30,10 +47,10 @@ class Pet {
     @RelayField
     Species species
 
-    @RelayQuery
-    static List<Pet> bySpecies(
-            @RelayArgument(name = 'species') Species species
-    ) {
-        findAllBySpecies(species)
+    static class BySpeciesDataFetcher implements DataFetcher {
+        @Override
+        Object get(DataFetchingEnvironment env) {
+            return findAllBySpecies(env.arguments.species as Species)
+        }
     }
 }

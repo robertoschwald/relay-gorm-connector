@@ -15,11 +15,3 @@ public @interface RelayField {
     public String description() default ''
 
 }
-
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface RelayEnumField {
-
-    public String description() default ''
-
-}

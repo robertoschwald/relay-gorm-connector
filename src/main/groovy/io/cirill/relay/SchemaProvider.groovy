@@ -4,9 +4,9 @@ import graphql.GraphQL
 import graphql.Scalars
 import graphql.schema.*
 import io.cirill.relay.annotation.RelayEnum
-import io.cirill.relay.annotation.RelayEnumField
 import io.cirill.relay.annotation.RelayField
 import io.cirill.relay.annotation.RelayType
+import io.cirill.relay.dsl.GQLFieldSpec
 
 import java.lang.reflect.ParameterizedType
 
@@ -15,6 +15,8 @@ import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition
 import static graphql.schema.GraphQLObjectType.newObject
 
 public class SchemaProvider {
+
+    public static Map<Class, GraphQLEnumType> GLOBAL_ENUM_RESOLVE = [:]
 
     public Map<Class, GraphQLObjectType> typeResolve
     public Map<Class, GraphQLEnumType> enumResolve
@@ -42,6 +44,7 @@ public class SchemaProvider {
                     .findAll{ it.isAnnotationPresent(RelayEnum) }
                     .collectEntries { [it, classToGQLEnum(it, it.getAnnotation(RelayEnum)?.description())] }
         }
+
         typeResolve = domainClasses.collectEntries { [it, classToGQLObject(it)] }
 
         schema = buildSchema()
@@ -51,15 +54,24 @@ public class SchemaProvider {
 	public GraphQL graphQL() { return graphQL }
 
     private GraphQLSchema buildSchema() {
+
+        // this is needed for now as we can't yet use a GraphQLTypeReference for input types
+        enumResolve.each { clazz, gql ->
+            GLOBAL_ENUM_RESOLVE[clazz] = gql
+        }
+
+        // build root fields for queries
         def queryBuilder = newObject()
                 .name('queryType')
                 .field(RelayHelpers.nodeField(nodeInterface, nodeDataFetcher))
 
         typeResolve.each { domainObj, gqlObj ->
-            def rootFields = new RootFieldProvider(domainObj, gqlObj, enumResolve)
-            queryBuilder.fields(rootFields.getFields())
+            try {
+                queryBuilder.fields(domainObj.relayRoots())
+            } catch (PropertyNotFoundException) {}
         }
 
+        // build root fields for mutations
 	    def mutationBuilder = newObject().name('mutationType') // TODO
 
 	    typeResolve.each { domainObj, gqlObj ->
@@ -67,23 +79,26 @@ public class SchemaProvider {
 		    mutationBuilder.fields(mutations.mutations)
 	    }
 
-        GraphQLSchema.newSchema().query(queryBuilder.build()).mutation(mutationBuilder.build()).build()
+        List<GraphQLType> allTypes = []
+        allTypes.addAll typeResolve.values()
+        allTypes.addAll enumResolve.values()
+
+        GraphQLSchema.newSchema().query(queryBuilder.build()).mutation(mutationBuilder.build()).build(allTypes.toSet())
     }
 
     private GraphQLObjectType classToGQLObject(Class domainClass) {
         def objectBuilder = newObject()
                 .name(domainClass.simpleName)
                 .description(domainClass.getAnnotation(RelayType).description())
-                .field(newFieldDefinition()
-                    .name('id')
-                    .description(RelayHelpers.DESCRIPTION_ID_ARGUMENT)
-                    .type(RelayHelpers.nonNull(Scalars.GraphQLID))
-                    .dataFetcher( { env ->
+                .field(GQLFieldSpec.field {
+                    name 'id'
+                    description RelayHelpers.DESCRIPTION_ID_ARGUMENT
+                    type RelayHelpers.nonNull(Scalars.GraphQLID)
+                    dataFetcher { env ->
                         def obj = env.getSource()
                         return RelayHelpers.toGlobalId(domainClass.simpleName, obj.id as String)
-                    } as DataFetcher)
-                    .fetchField()
-                    .build())
+                    }
+                })
 
         // add fields/arguments to the graphQL object for each domain field tagged for Relay
         domainClass.declaredFields.findAll({ it.isAnnotationPresent(RelayField) }).each { domainClassField ->
@@ -122,7 +137,7 @@ public class SchemaProvider {
                 default:
                     /*
                         If the field's type isn't covered above, check for the RelayType annotation on the type's
-                        definition. If the type is a List, then we will check the list's generic type for the RelayType
+                        description. If the type is a List, then we will check the list's generic type for the RelayType
                         annotation (some heavy reflection here) and create a relay 'connection' relationship if it present.
                      */
 
@@ -197,7 +212,7 @@ public class SchemaProvider {
     private static GraphQLEnumType classToGQLEnum(Class type, String description) {
         def enumBuilder = newEnum().name(type.simpleName).description(description)
 
-        type.declaredFields.findAll({ it.isAnnotationPresent(RelayEnumField) }).each { field ->
+        type.declaredFields.each { field ->
             enumBuilder.value(field.name)
         }
 

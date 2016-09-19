@@ -1,6 +1,10 @@
 package io.cirill.relay
 
+import graphql.Scalars
+import graphql.schema.DataFetcher
+import graphql.schema.DataFetchingEnvironment
 import io.cirill.relay.annotation.*
+import io.cirill.relay.dsl.GQLFieldSpec
 
 @RelayType(description = 'A person')
 class Person {
@@ -10,6 +14,25 @@ class Person {
     static constraints = {
         notARelayField nullable: true
     }
+
+    static relayRoots = {[
+            GQLFieldSpec.field {
+                name 'findByNames'
+                type {
+                    list {
+                        ref 'Person'
+                    }
+                }
+                argument {
+                    name 'name'
+                    type {
+                        list Scalars.GraphQLString
+                    }
+                    nullable false
+                }
+                dataFetcher new FindByNamesDataFetcher()
+            }
+    ]}
 
     @RelayField(description = 'A person\'s name')
     String name
@@ -23,14 +46,6 @@ class Person {
     @RelayField
     List<Pet> pets
 
-    @RelayQuery(pluralName = 'findByNameWithAges')
-    static Person findByNameWithAge(
-            @RelayArgument(name = 'name') String name,
-            @RelayArgument(name = 'age') int age
-    ) {
-        findAllByNameIlike(name).find { it.age == age }
-    }
-
     @RelayMutation(output = ['id'])
     static def addPerson(
             @RelayMutationInput(name = 'name') String name,
@@ -40,6 +55,16 @@ class Person {
         withTransaction { status ->
             person = new Person(name: name, age: age)
             person.save()
+        }
+    }
+
+    static class FindByNamesDataFetcher implements DataFetcher {
+
+        @Override
+        Object get(DataFetchingEnvironment env) {
+            env.arguments.name.collect {
+                findByName(it as String)
+            }
         }
     }
 }
