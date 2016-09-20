@@ -10,7 +10,4 @@ import java.lang.annotation.Target
 public @interface RelayQuery {}
 
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface RelayMutation {}
 

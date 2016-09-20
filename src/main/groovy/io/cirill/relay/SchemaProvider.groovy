@@ -2,7 +2,9 @@ package io.cirill.relay
 
 import graphql.GraphQL
 import graphql.Scalars
+import graphql.relay.SimpleListConnection
 import graphql.schema.*
+import io.cirill.relay.annotation.RelayConnection
 import io.cirill.relay.annotation.RelayEnum
 import io.cirill.relay.annotation.RelayField
 import io.cirill.relay.annotation.RelayMutation
@@ -63,7 +65,7 @@ public class SchemaProvider {
             GLOBAL_ENUM_RESOLVE[clazz] = gql
         }
 
-        // build root fields for queries
+        // build root edgeFields for queries
         def queryBuilder = newObject()
                 .name('queryType')
                 .field(RelayHelpers.nodeField(nodeInterface, nodeDataFetcher))
@@ -73,7 +75,7 @@ public class SchemaProvider {
             queryBuilder.fields queryNames.collect { name -> domainObj."$name"() }
         }
 
-        // build root fields for mutations
+        // build root edgeFields for mutations
 	    def mutationBuilder = newObject().name('mutationType') // TODO
 
 	    typeResolve.each { domainObj, gqlObj ->
@@ -102,7 +104,7 @@ public class SchemaProvider {
                     }
                 })
 
-        // add fields/arguments to the graphQL object for each domain inputObject tagged for Relay
+        // add all normal/list relay fields
         domainClass.declaredFields.findAll({ it.isAnnotationPresent(RelayField) }).each { domainClassField ->
 
             String fieldDescription = domainClassField.getAnnotation(RelayField).description()
@@ -140,7 +142,7 @@ public class SchemaProvider {
                     /*
                         If the inputObject's type isn't covered above, check for the RelayType annotation on the type's
                         description. If the type is a List, then we will check the list's generic type for the RelayType
-                        annotation (some heavy reflection here) and create a relay 'connection' relationship if it present.
+                        annotation (some heavy reflection here) and create a relay 'connectionType' relationship if it present.
                      */
 
                     // inputObject describes an enum type
@@ -168,7 +170,7 @@ public class SchemaProvider {
                         })
                     }
 
-                    // inputObject describes a connection
+                    // inputObject describes a connectionType
                     else if (List.isAssignableFrom(domainClassField.type)) {
 
                         // parse the parameterized type of the list
@@ -176,7 +178,7 @@ public class SchemaProvider {
 
                         // throw an error if the generic type isn't marked for relay
                         if (!genericType.isAnnotationPresent(RelayType)) {
-                            throw new Exception("Illegal relay type $genericType.simpleName for connection at ${domainClass.name + '.' + domainClassField.name}")
+                            throw new Exception("Illegal relay type $genericType.simpleName for connectionType at ${domainClass.name + '.' + domainClassField.name}")
                         }
 
                         // TODO implement SimpleConnection
@@ -208,6 +210,21 @@ public class SchemaProvider {
 
             objectBuilder.field(fieldBuilder.fetchField().build())
         }
+
+        // add connections
+        domainClass.declaredFields.findAll({ it.isAnnotationPresent(RelayConnection) }).each {
+            String dataField = it.getAnnotation(RelayConnection).connectionFor()
+            GraphQLObjectType connectionType = (GraphQLObjectType) domainClass."$it.name"()
+            objectBuilder.field(GQLFieldSpec.field {
+                name dataField
+                type connectionType
+                arguments RelayHelpers.relayArgs()
+                dataFetcher { env ->
+                    new SimpleListConnection(env.source."$dataField" as List).get(env)
+                }
+            })
+        }
+
         objectBuilder.withInterface(nodeInterface).build()
     }
 

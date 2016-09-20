@@ -136,4 +136,32 @@ class RelayServiceSpec extends Specification {
 	    result.data.addPerson.newPerson.id == toID('Person', 1)
 	    result.data.addPerson.clientMutationId == mutationId
     }
+
+    def "Connection test"() {
+        given:
+        def bill = new Person(name:'Bill', age:10)
+        def steve = new Person(name:'Steve', age:12)
+        def sally = new Person(name:'Sally', age: 6)
+        bill.children = [steve, sally]
+        [bill, steve, sally]*.save(flush:true)
+        def cursor = null
+
+        def query = "query { node(id: \"${toID('Person', bill.id)}\") { ... on Person { children { totalChildren, edges { childsBirthday }}}}}"
+        def query2 = "query { node(id: \"${toID('Person', bill.id)}\") { ... on Person { children(first: 1) { edges { cursor, node { name }}}}}}"
+        def query3 = "query { node(id: \"${toID('Person', bill.id)}\") { ... on Person { children(first: 1, after: \"${->cursor}\") { edges { node { name }}}}}}"
+
+        when:
+        def result = service.query query, null, [:]
+        def result2 = service.query query2, null, [:]
+        cursor = result2.data.node.children.edges[0].cursor
+        def result3 = service.query query3, null, [:]
+
+        then:
+        result.data.node.children.size() == 2
+        result.data.node.children.totalChildren == 2
+        result.data.node.children.edges[0].childsBirthday == Calendar.getInstance().get(Calendar.YEAR) - steve.age
+        result.data.node.children.edges[1].childsBirthday == Calendar.getInstance().get(Calendar.YEAR) - sally.age
+        result2.data.node.children.edges[0].node.name == steve.name
+        result3.data.node.children.edges[0].node.name == sally.name
+    }
 }

@@ -2,8 +2,11 @@ package io.cirill.relay.dsl
 
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLList
+import graphql.schema.GraphQLNonNull
 import graphql.schema.GraphQLOutputType
+import graphql.schema.GraphQLType
 import graphql.schema.GraphQLTypeReference
+import io.cirill.relay.RelayHelpers
 
 import static graphql.schema.GraphQLObjectType.newObject
 
@@ -14,6 +17,7 @@ public class GQLOutputTypeSpec {
     private List<GraphQLFieldDefinition> fields = []
     private GraphQLTypeReference ref
     private GraphQLList list
+    private GraphQLNonNull nonNull
 
     void name(String n) { name = n }
     void description(String d) { description = d }
@@ -25,14 +29,19 @@ public class GQLOutputTypeSpec {
         list = new GraphQLList(type(cl))
     }
     void list(GraphQLOutputType t) { list = new GraphQLList(t) }
+    void nonNull(GraphQLType t) { nonNull = RelayHelpers.nonNull(t) }
+    void nonNull(@DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = GQLOutputTypeSpec) Closure cl) {
+        nonNull(type(cl))
+    }
 
     GraphQLOutputType build() {
         if (ref) {
             ref
         } else if (list) {
             list
-        }
-        else {
+        } else if (nonNull) {
+            nonNull
+        } else {
             newObject().name(name).description(description).fields(fields).build()
         }
     }

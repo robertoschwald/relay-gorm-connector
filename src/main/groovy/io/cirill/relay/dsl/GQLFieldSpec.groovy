@@ -19,8 +19,7 @@ public class GQLFieldSpec {
     void description(String d) { description = d }
 
     void argument(@DelegatesTo(strategy=Closure.DELEGATE_FIRST, value=GQLArgumentSpec)Closure cl) { args.add GQLArgumentSpec.argument(cl) }
-    void argument(GraphQLArgument arg) { args.add(arg) }
-    void argument(Collection<GraphQLArgument> arg) { args.addAll(arg) }
+    void arguments(Collection<GraphQLArgument> arg) { args.addAll(arg) }
     void dataFetcher(DataFetcher d) { df = d }
     void type(GraphQLOutputType t) { type = t }
     void type(@DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = GQLOutputTypeSpec) Closure cl) {

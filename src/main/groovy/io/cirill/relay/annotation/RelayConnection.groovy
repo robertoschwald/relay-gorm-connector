@@ -4,15 +4,17 @@ import java.lang.annotation.ElementType
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
+
 /**
- * Created by mcirillo on 2/15/16.
+ * relay-gorm-connector
+ * @author mcirillo
  */
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface RelayType {
+@Target(ElementType.FIELD)
+public @interface RelayConnection {
 
+    public String connectionFor()
     public String description() default ''
 
 }
-

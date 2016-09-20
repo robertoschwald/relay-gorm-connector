@@ -4,6 +4,7 @@ import graphql.Scalars
 import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import io.cirill.relay.annotation.*
+import io.cirill.relay.dsl.GQLConnectionTypeSpec
 import io.cirill.relay.dsl.GQLFieldSpec
 import io.cirill.relay.dsl.GQLMutationSpec
 
@@ -14,6 +15,51 @@ class Person {
 
     static constraints = {
         notARelayField nullable: true
+    }
+
+    static hasMany = [ children: Person ]
+
+    @RelayField(description = 'A person\'s name')
+    String name
+
+    @RelayField
+    int age
+
+    @RelayField
+    Person bestFriend
+
+    @RelayField
+    List<Pet> pets
+
+    @RelayConnection(connectionFor = 'children') // should match the field name that holds connection data
+    static childrenConnectionType = {
+        GQLConnectionTypeSpec.connectionType {
+            name 'Children'
+            edgeType {
+                ref 'Person'
+            }
+            edgeField {
+                name 'childsBirthday'
+                type Scalars.GraphQLInt
+                dataFetcher { env ->
+                    Calendar.getInstance().get(Calendar.YEAR) - (int)env.source.node.age
+                }
+            }
+            connectionField {
+                name 'totalChildren'
+                type Scalars.GraphQLInt
+                dataFetcher { env ->
+                    env.source.edges.count { true }
+                }
+            }
+            connectionField {
+                name 'childrenUnderTen'
+                type Scalars.GraphQLInt
+                dataFetcher { env ->
+                    env.source.edges.count { it.node.age < 10 }
+                }
+            }
+        }
     }
 
     @RelayQuery
@@ -74,18 +120,6 @@ class Person {
             dataFetcher new AddPersonDataFetcher()
         }
     }
-
-    @RelayField(description = 'A person\'s name')
-    String name
-
-    @RelayField
-    int age
-
-    @RelayField
-    Person bestFriend
-
-    @RelayField
-    List<Pet> pets
 
     static class AddPersonDataFetcher implements DataFetcher {
         @Override
