@@ -2,16 +2,14 @@ package io.cirill.relay.dsl
 
 import graphql.schema.GraphQLArgument
 import graphql.schema.GraphQLInputType
-import io.cirill.relay.RelayHelpers
 
 import static graphql.schema.GraphQLArgument.newArgument
 
 public class GQLArgumentSpec {
 
-    String name
-    String description = ''
-    GraphQLInputType type
-    boolean nullable
+    private String name
+    private String description = ''
+    private GraphQLInputType type
 
     void name(String n) { name = n }
     void description(String d) { description = d }
@@ -19,12 +17,11 @@ public class GQLArgumentSpec {
     void type(@DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = GQLInputTypeSpec) Closure cl) {
         type = GQLInputTypeSpec.inputType(cl)
     }
-    void nullable (boolean b) { nullable = b }
     GraphQLArgument build() {
         newArgument()
                 .name(name)
                 .description(description)
-                .type(nullable ? type : RelayHelpers.nonNull(type))
+                .type(type)
                 .build()
     }
 

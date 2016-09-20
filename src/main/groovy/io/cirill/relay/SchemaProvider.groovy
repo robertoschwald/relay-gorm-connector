@@ -8,6 +8,7 @@ import io.cirill.relay.annotation.RelayField
 import io.cirill.relay.annotation.RelayType
 import io.cirill.relay.dsl.GQLFieldSpec
 
+import javax.el.PropertyNotFoundException
 import java.lang.reflect.ParameterizedType
 
 import static graphql.schema.GraphQLEnumType.newEnum
@@ -68,15 +69,16 @@ public class SchemaProvider {
         typeResolve.each { domainObj, gqlObj ->
             try {
                 queryBuilder.fields(domainObj.relayRoots())
-            } catch (PropertyNotFoundException) {}
+            } catch (MissingMethodException ignore) {}
         }
 
         // build root fields for mutations
 	    def mutationBuilder = newObject().name('mutationType') // TODO
 
 	    typeResolve.each { domainObj, gqlObj ->
-		    def mutations = new DefaultMutationProvider(domainObj, gqlObj, enumResolve)
-		    mutationBuilder.fields(mutations.mutations)
+		    try {
+                mutationBuilder.fields(domainObj.relayMutations())
+            } catch (MissingMethodException ignore) {}
 	    }
 
         List<GraphQLType> allTypes = []
@@ -100,7 +102,7 @@ public class SchemaProvider {
                     }
                 })
 
-        // add fields/arguments to the graphQL object for each domain field tagged for Relay
+        // add fields/arguments to the graphQL object for each domain inputObject tagged for Relay
         domainClass.declaredFields.findAll({ it.isAnnotationPresent(RelayField) }).each { domainClassField ->
 
             String fieldDescription = domainClassField.getAnnotation(RelayField).description()
@@ -136,15 +138,15 @@ public class SchemaProvider {
 
                 default:
                     /*
-                        If the field's type isn't covered above, check for the RelayType annotation on the type's
+                        If the inputObject's type isn't covered above, check for the RelayType annotation on the type's
                         description. If the type is a List, then we will check the list's generic type for the RelayType
                         annotation (some heavy reflection here) and create a relay 'connection' relationship if it present.
                      */
 
-                    // field describes an enum type
+                    // inputObject describes an enum type
                     if (domainClassField.type.isAnnotationPresent(RelayEnum)) {
 
-                        // the field describes an enumeration
+                        // the inputObject describes an enumeration
                         if (Enum.isAssignableFrom(domainClassField.type)) {
                             def gqlEnum = enumResolve[domainClassField.type]
                             fieldBuilder.type(gqlEnum)
@@ -166,7 +168,7 @@ public class SchemaProvider {
                         })
                     }
 
-                    // field describes a connection
+                    // inputObject describes a connection
                     else if (List.isAssignableFrom(domainClassField.type)) {
 
                         // parse the parameterized type of the list

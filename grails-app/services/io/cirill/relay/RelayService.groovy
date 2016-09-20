@@ -1,7 +1,6 @@
 package io.cirill.relay
 
 import grails.core.GrailsApplication
-import graphql.ExecutionResult
 import graphql.GraphQL
 import graphql.schema.DataFetcher
 import io.cirill.relay.annotation.RelayType
@@ -45,7 +44,7 @@ public class RelayService {
         return ret
     }
 
-    public ExecutionResult introspect() {
+    public def introspect() {
         query RelayHelpers.INTROSPECTION_QUERY, null, [:]
     }
 }

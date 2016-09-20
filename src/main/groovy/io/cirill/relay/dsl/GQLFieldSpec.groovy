@@ -9,11 +9,11 @@ import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition
 
 public class GQLFieldSpec {
 
-    String name
-    String description = ''
-    List<GraphQLArgument> args = []
-    DataFetcher df
-    GraphQLOutputType type
+    protected String name
+    protected String description = ''
+    protected List<GraphQLArgument> args = []
+    protected DataFetcher df
+    protected GraphQLOutputType type
 
     void name(String n) { name = n }
     void description(String d) { description = d }

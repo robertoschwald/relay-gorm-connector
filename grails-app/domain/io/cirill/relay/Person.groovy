@@ -5,6 +5,7 @@ import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import io.cirill.relay.annotation.*
 import io.cirill.relay.dsl.GQLFieldSpec
+import io.cirill.relay.dsl.GQLMutationSpec
 
 @RelayType(description = 'A person')
 class Person {
@@ -26,11 +27,49 @@ class Person {
                 argument {
                     name 'name'
                     type {
-                        list Scalars.GraphQLString
+                        list {
+                            nonNull Scalars.GraphQLString
+                        }
                     }
-                    nullable false
                 }
                 dataFetcher new FindByNamesDataFetcher()
+            }
+    ]}
+
+    static relayMutations = {[
+            GQLMutationSpec.field {
+                name 'addPerson'
+                type {
+                    name 'AddPersonPayload'
+                    field {
+                        name 'newPerson'
+                        type {
+                            ref 'Person'
+                        }
+                    }
+                    field {
+                        name 'clientMutationId'
+                        type Scalars.GraphQLString
+                    }
+                }
+                inputType {
+                    name 'AddPersonInput'
+                    field {
+                        name 'name'
+                        description 'A new persons name'
+                        type {
+                            nonNull Scalars.GraphQLString
+                        }
+                    }
+                    field {
+                        name 'age'
+                        description 'a new persons age'
+                        type {
+                            nonNull Scalars.GraphQLInt
+                        }
+                    }
+                }
+                dataFetcher new AddPersonDataFetcher()
             }
     ]}
 
@@ -46,15 +85,18 @@ class Person {
     @RelayField
     List<Pet> pets
 
-    @RelayMutation(output = ['id'])
-    static def addPerson(
-            @RelayMutationInput(name = 'name') String name,
-            @RelayMutationInput(name = 'age') int age
-    ) {
-        def person
-        withTransaction { status ->
-            person = new Person(name: name, age: age)
-            person.save()
+    static class AddPersonDataFetcher implements DataFetcher {
+        @Override
+        Object get(DataFetchingEnvironment environment) {
+            def person
+            withTransaction { status ->
+                person = new Person(name: environment.arguments.input.name as String, age: environment.arguments.input.age as int)
+                person.save()
+            }
+            return [
+                    newPerson : person,
+                    clientMutationId : environment.arguments.input.clientMutationId
+            ]
         }
     }
 

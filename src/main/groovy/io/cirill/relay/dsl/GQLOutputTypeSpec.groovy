@@ -9,11 +9,11 @@ import static graphql.schema.GraphQLObjectType.newObject
 
 public class GQLOutputTypeSpec {
 
-    String name
-    String description = ''
-    List<GraphQLFieldDefinition> fields = []
-    GraphQLTypeReference ref
-    GraphQLList list
+    private String name
+    private String description = ''
+    private List<GraphQLFieldDefinition> fields = []
+    private GraphQLTypeReference ref
+    private GraphQLList list
 
     void name(String n) { name = n }
     void description(String d) { description = d }

@@ -5,9 +5,6 @@ import graphql.schema.DataFetchingEnvironment
 import io.cirill.relay.annotation.*
 import io.cirill.relay.dsl.GQLFieldSpec
 
-/**
- * Created by mcirillo on 2/15/16.
- */
 @RelayType
 class Pet {
 
@@ -20,8 +17,9 @@ class Pet {
                 name 'bySpecies'
                 argument {
                     name 'species'
-                    type SchemaProvider.GLOBAL_ENUM_RESOLVE[Species]
-                    nullable false
+                    type {
+                        nonNull SchemaProvider.GLOBAL_ENUM_RESOLVE[Species]
+                    }
                 }
                 type {
                     list {

@@ -124,28 +124,16 @@ class RelayServiceSpec extends Specification {
         result.data.bySpecies[1]?.name == snoop.name
     }
 
-    def "Add via static method"() {
-        given:
-        String name = 'Steven'
-        int age = 123
-
-        when:
-        def relayID = toID('Person', Person.addPerson(name, age).id)
-
-        then:
-        name == Person.findById(RelayHelpers.fromGlobalId(relayID).id as Long).name
-    }
-
     def "Add via mutation query"() {
         given:
         def mutationId = '1234'
-        def query = "mutation { addPerson(input: {name: \"Steve\", age: 10, clientMutationId: \"$mutationId\"}) { id clientMutationId } }"
+        def query = "mutation { addPerson(input: {name: \"Steve\", age: 10, clientMutationId: \"$mutationId\"}) { newPerson { id }, clientMutationId } }"
 
         when:
         def result = service.query query, null, [:]
 
 	    then:
-	    result.data.addPerson.id == toID('Person', 1)
+	    result.data.addPerson.newPerson.id == toID('Person', 1)
 	    result.data.addPerson.clientMutationId == mutationId
     }
 }
