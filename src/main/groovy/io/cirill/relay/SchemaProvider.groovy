@@ -5,6 +5,8 @@ import graphql.Scalars
 import graphql.schema.*
 import io.cirill.relay.annotation.RelayEnum
 import io.cirill.relay.annotation.RelayField
+import io.cirill.relay.annotation.RelayMutation
+import io.cirill.relay.annotation.RelayQuery
 import io.cirill.relay.annotation.RelayType
 import io.cirill.relay.dsl.GQLFieldSpec
 
@@ -67,18 +69,16 @@ public class SchemaProvider {
                 .field(RelayHelpers.nodeField(nodeInterface, nodeDataFetcher))
 
         typeResolve.each { domainObj, gqlObj ->
-            try {
-                queryBuilder.fields(domainObj.relayRoots())
-            } catch (MissingMethodException ignore) {}
+            def queryNames = domainObj.declaredFields.findAll({ it.isAnnotationPresent(RelayQuery) })*.name
+            queryBuilder.fields queryNames.collect { name -> domainObj."$name"() }
         }
 
         // build root fields for mutations
 	    def mutationBuilder = newObject().name('mutationType') // TODO
 
 	    typeResolve.each { domainObj, gqlObj ->
-		    try {
-                mutationBuilder.fields(domainObj.relayMutations())
-            } catch (MissingMethodException ignore) {}
+            def mutationNames = domainObj.declaredFields.findAll({ it.isAnnotationPresent(RelayMutation) })*.name
+            mutationBuilder.fields mutationNames.collect { name -> domainObj."$name"() }
 	    }
 
         List<GraphQLType> allTypes = []

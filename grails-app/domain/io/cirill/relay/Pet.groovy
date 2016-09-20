@@ -12,23 +12,24 @@ class Pet {
         owner nullable: true
     }
 
-    static relayRoots = {[
-            GQLFieldSpec.field {
-                name 'bySpecies'
-                argument {
-                    name 'species'
-                    type {
-                        nonNull SchemaProvider.GLOBAL_ENUM_RESOLVE[Species]
-                    }
-                }
+    @RelayQuery
+    static bySpeciesRoot = {
+        GQLFieldSpec.field {
+            name 'bySpecies'
+            argument {
+                name 'species'
                 type {
-                    list {
-                        ref 'Pet'
-                    }
+                    nonNull SchemaProvider.GLOBAL_ENUM_RESOLVE[Species]
                 }
-                dataFetcher new BySpeciesDataFetcher()
             }
-    ]}
+            type {
+                list {
+                    ref 'Pet'
+                }
+            }
+            dataFetcher new BySpeciesDataFetcher()
+        }
+    }
 
     @RelayEnum
     public enum Species {

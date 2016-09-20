@@ -16,62 +16,64 @@ class Person {
         notARelayField nullable: true
     }
 
-    static relayRoots = {[
-            GQLFieldSpec.field {
-                name 'findByNames'
+    @RelayQuery
+    static byNamesQuery = {
+        GQLFieldSpec.field {
+            name 'findByNames'
+            type {
+                list {
+                    ref 'Person'
+                }
+            }
+            argument {
+                name 'name'
                 type {
                     list {
+                        nonNull Scalars.GraphQLString
+                    }
+                }
+            }
+            dataFetcher new FindByNamesDataFetcher()
+        }
+    }
+
+    @RelayMutation
+    static addPersonMutation = {
+        GQLMutationSpec.field {
+            name 'addPerson'
+            type {
+                name 'AddPersonPayload'
+                field {
+                    name 'newPerson'
+                    type {
                         ref 'Person'
                     }
                 }
-                argument {
+                field {
+                    name 'clientMutationId'
+                    type Scalars.GraphQLString
+                }
+            }
+            inputType {
+                name 'AddPersonInput'
+                field {
                     name 'name'
+                    description 'A new persons name'
                     type {
-                        list {
-                            nonNull Scalars.GraphQLString
-                        }
+                        nonNull Scalars.GraphQLString
                     }
                 }
-                dataFetcher new FindByNamesDataFetcher()
+                field {
+                    name 'age'
+                    description 'a new persons age'
+                    type {
+                        nonNull Scalars.GraphQLInt
+                    }
+                }
             }
-    ]}
-
-    static relayMutations = {[
-            GQLMutationSpec.field {
-                name 'addPerson'
-                type {
-                    name 'AddPersonPayload'
-                    field {
-                        name 'newPerson'
-                        type {
-                            ref 'Person'
-                        }
-                    }
-                    field {
-                        name 'clientMutationId'
-                        type Scalars.GraphQLString
-                    }
-                }
-                inputType {
-                    name 'AddPersonInput'
-                    field {
-                        name 'name'
-                        description 'A new persons name'
-                        type {
-                            nonNull Scalars.GraphQLString
-                        }
-                    }
-                    field {
-                        name 'age'
-                        description 'a new persons age'
-                        type {
-                            nonNull Scalars.GraphQLInt
-                        }
-                    }
-                }
-                dataFetcher new AddPersonDataFetcher()
-            }
-    ]}
+            dataFetcher new AddPersonDataFetcher()
+        }
+    }
 
     @RelayField(description = 'A person\'s name')
     String name
@@ -101,7 +103,6 @@ class Person {
     }
 
     static class FindByNamesDataFetcher implements DataFetcher {
-
         @Override
         Object get(DataFetchingEnvironment env) {
             env.arguments.name.collect {
