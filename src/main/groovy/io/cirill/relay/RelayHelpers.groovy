@@ -67,7 +67,7 @@ query IntrospectionQuery {
     kind
     name
     description
-    edgeFields(includeDeprecated: true) {
+    fields(includeDeprecated: true) {
       name
       description
       args {
