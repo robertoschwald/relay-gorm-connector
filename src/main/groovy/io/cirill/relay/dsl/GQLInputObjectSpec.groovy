@@ -10,7 +10,7 @@ import static graphql.schema.GraphQLInputObjectType.newInputObject
  * relay-gorm-connector
  * @author mcirillo
  */
-class GQLInputObjectSpec {
+public class GQLInputObjectSpec {
 
     private String name
     private String description = ''

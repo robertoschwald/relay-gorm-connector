@@ -9,7 +9,7 @@ import static graphql.schema.GraphQLInputObjectField.newInputObjectField
  * relay-gorm-connector
  * @author mcirillo
  */
-class GQLInputObjectFieldSpec {
+public class GQLInputObjectFieldSpec {
 
     private String name
     private String description = ''

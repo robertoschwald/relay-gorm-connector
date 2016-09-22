@@ -15,6 +15,5 @@ import java.lang.annotation.Target
 public @interface RelayConnection {
 
     public String connectionFor()
-    public String description() default ''
 
 }

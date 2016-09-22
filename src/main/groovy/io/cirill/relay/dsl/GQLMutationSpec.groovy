@@ -9,7 +9,7 @@ import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition
  * relay-gorm-connector
  * @author mcirillo
  */
-class GQLMutationSpec extends GQLFieldSpec {
+public class GQLMutationSpec extends GQLFieldSpec {
 
     private GraphQLInputObjectType inputObject
 

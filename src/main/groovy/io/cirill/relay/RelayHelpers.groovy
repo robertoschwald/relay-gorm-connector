@@ -6,7 +6,7 @@ import graphql.schema.*
 import groovy.transform.CompileStatic
 
 @CompileStatic
-class RelayHelpers {
+public class RelayHelpers {
 
     private static Relay relay = new Relay()
 

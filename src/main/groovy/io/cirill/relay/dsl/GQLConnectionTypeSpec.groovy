@@ -9,7 +9,7 @@ import io.cirill.relay.RelayHelpers
  * relay-gorm-connector
  * @author mcirillo
  */
-class GQLConnectionTypeSpec {
+public class GQLConnectionTypeSpec {
 
     private String name
     private GraphQLOutputType edgeType
