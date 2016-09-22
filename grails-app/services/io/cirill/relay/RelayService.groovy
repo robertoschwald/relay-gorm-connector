@@ -8,7 +8,7 @@ import io.cirill.relay.annotation.RelayType
 public class RelayService {
 
     // injected
-    GrailsApplication grailsApplication
+    def grailsApplication
 
     protected GraphQL graphQL
     protected SchemaProvider schemaProvider
@@ -22,6 +22,10 @@ public class RelayService {
     protected Closure nodeDataFetcher = { environment ->
         def decoded = RelayHelpers.fromGlobalId(environment.arguments.id as String)
         domainArtefactCache."$decoded.type".findById decoded.id
+    }
+
+    void resetGraphQL() {
+        graphQL = null
     }
 
     public def query(String query, Object context, Map variables) {

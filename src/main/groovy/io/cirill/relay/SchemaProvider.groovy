@@ -4,15 +4,9 @@ import graphql.GraphQL
 import graphql.Scalars
 import graphql.relay.SimpleListConnection
 import graphql.schema.*
-import io.cirill.relay.annotation.RelayConnection
-import io.cirill.relay.annotation.RelayEnum
-import io.cirill.relay.annotation.RelayField
-import io.cirill.relay.annotation.RelayMutation
-import io.cirill.relay.annotation.RelayQuery
-import io.cirill.relay.annotation.RelayType
+import io.cirill.relay.annotation.*
 import io.cirill.relay.dsl.GQLFieldSpec
 
-import javax.el.PropertyNotFoundException
 import java.lang.reflect.ParameterizedType
 
 import static graphql.schema.GraphQLEnumType.newEnum

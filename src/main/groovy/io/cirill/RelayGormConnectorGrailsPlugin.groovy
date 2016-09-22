@@ -2,6 +2,8 @@ package io.cirill
 
 import grails.plugins.*
 import io.cirill.relay.RelayService
+import io.cirill.relay.annotation.RelayType
+import org.grails.core.DefaultGrailsServiceClass
 
 class RelayGormConnectorGrailsPlugin extends Plugin {
 
@@ -57,15 +59,16 @@ class RelayGormConnectorGrailsPlugin extends Plugin {
         // TODO Implement post initialization spring config (optional)
     }
 
-    def influences = ['controllers']
-    def observe = ['domains']
+    def watchedResources = [
+            "file:./grails-app/domain/*.groovy",
+            'file:./grails-app/domain/**/*.groovy'
+    ]
 
     void onChange(Map<String, Object> event) {
-        if (event.source) {
-            beans {
-                relayService(RelayService.getClazz()) { bean ->
-                    bean.autowire =  true
-                }
+        if (event.source.class == Class) {
+            Class c = (Class) event.source
+            if (c.isAnnotationPresent(RelayType)) {
+                applicationContext.getBeansOfType(RelayService).values()*.resetGraphQL()
             }
         }
     }
