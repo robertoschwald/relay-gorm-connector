@@ -97,6 +97,8 @@ public class SchemaProvider {
                         return RelayHelpers.toGlobalId(domainClass.simpleName, obj.id as String)
                     }
                 })
+                .fields(domainClass.declaredFields.findAll({ it.isAnnotationPresent(RelayProxyField) }).collect({ domainClass."$it.name"() as GraphQLFieldDefinition }))
+
 
         // add all normal/list relay fields
         domainClass.declaredFields.findAll({ it.isAnnotationPresent(RelayField) }).each { domainClassField ->
@@ -139,16 +141,7 @@ public class SchemaProvider {
                         annotation (some heavy reflection here) and create a relay 'connectionType' relationship if it present.
                      */
 
-                    if (domainClassField.type == Date) {
-                        fieldBuilder.type(Scalars.GraphQLLong)
-                        fieldBuilder.dataFetcher({ env ->
-                            Date date = env.source."$domainClassField.name"
-                            date.getTime()
-                        })
-                    }
-
-                    // inputObject describes an enum type
-                    else if (domainClassField.type.isAnnotationPresent(RelayEnum)) {
+                    if (domainClassField.type.isAnnotationPresent(RelayEnum)) {
 
                         // the inputObject describes an enumeration
                         if (Enum.isAssignableFrom(domainClassField.type)) {

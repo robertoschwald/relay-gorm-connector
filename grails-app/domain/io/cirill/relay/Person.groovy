@@ -31,6 +31,17 @@ class Person {
     @RelayField
     List<Pet> pets
 
+    @RelayProxyField
+    static proxyForNonRelayField = {
+        GQLFieldSpec.field {
+            name 'proxyField'
+            type Scalars.GraphQLString
+            dataFetcher { env ->
+                env.source.notARelayField
+            }
+        }
+    }
+
     @RelayConnection(connectionFor = 'children') // should match the field name that holds connection data
     static childrenConnectionType = {
         GQLConnectionTypeSpec.connectionType {

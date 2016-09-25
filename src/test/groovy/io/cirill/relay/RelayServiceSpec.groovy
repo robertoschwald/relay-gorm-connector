@@ -164,4 +164,17 @@ class RelayServiceSpec extends Specification {
         result2.data.node.children.edges[0].node.name == steve.name
         result3.data.node.children.edges[0].node.name == sally.name
     }
+
+    def "Proxy field test"() {
+        given:
+        def bill = new Person(name:'Bill', age:10, notARelayField: 'hidden from relay')
+        bill.save(flush: true)
+        def query = "query { node(id: \"${toID('Person', bill.id)}\") { ... on Person { proxyField }}}"
+
+        when:
+        def result = service.query query, null, [:]
+
+        then:
+        result.data.node.proxyField == bill.notARelayField
+    }
 }
