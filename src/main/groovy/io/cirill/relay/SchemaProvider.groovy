@@ -139,8 +139,16 @@ public class SchemaProvider {
                         annotation (some heavy reflection here) and create a relay 'connectionType' relationship if it present.
                      */
 
+                    if (domainClassField.type == Date) {
+                        fieldBuilder.type(Scalars.GraphQLLong)
+                        fieldBuilder.dataFetcher({ env ->
+                            Date date = env.source."$domainClassField.name"
+                            date.getTime()
+                        })
+                    }
+
                     // inputObject describes an enum type
-                    if (domainClassField.type.isAnnotationPresent(RelayEnum)) {
+                    else if (domainClassField.type.isAnnotationPresent(RelayEnum)) {
 
                         // the inputObject describes an enumeration
                         if (Enum.isAssignableFrom(domainClassField.type)) {
