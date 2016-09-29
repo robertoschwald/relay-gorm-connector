@@ -134,6 +134,19 @@ public class SchemaProvider {
                     scalarType = Scalars.GraphQLLong
                     break
 
+                case short:
+                case Short:
+                    scalarType = Scalars.GraphQLShort
+                    break
+
+                case BigInteger:
+                    scalarType = Scalars.GraphQLBigInteger
+                    break
+
+                case BigDecimal:
+                    scalarType = Scalars.GraphQLBigDecimal
+                    break
+
                 default:
                     /*
                         If the inputObject's type isn't covered above, check for the RelayType annotation on the type's
