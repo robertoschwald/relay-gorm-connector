@@ -1,7 +1,22 @@
 # relay-gorm-connector
+
+## Capabilities
 The purpose of this plugin is to easily translate Grails ORM domain classes into a GrahphQL schema that is compatible
 with Relay.js. Under the hood `graphql-java` (https://github.com/graphql-java/graphql-java) is being used dynamically
 to generate the schema.
+
+With this plugin a Grails app can serve a modern React/Relay frontend! Following Relay philosophy, the resulting GraphQL
+schema is described alongside the data that it relates to using relatively little code and an expressive DSL.
+
+<b>This plugin does not transpile frontend code.</b>
+
+## Limitations & Roadmap
+There are some unsupported GraphQL features still. Here they are in order of descending importance.
+
+1. Configurable `ExecutionStrategy` for data fetching
+2. Custom Union and Interface GraphQL types
+3. Relay2 support. Relay2 is still in the pipes at Facebook but we will have a new library soon. Due to this plugin's
+dependency on `graphql-java` some upstream work may be necessary as well.
 
 ## Getting Started
 ### Requirements
@@ -11,7 +26,7 @@ to generate the schema.
 
 ### Installation
 This plugin is not available (yet) in the official Grails plugin repo. The best way to make this plugin available to
-a local grails project is to clone this repo and build it.
+a local Grails project is to clone this repo and build it.
 
 ```bash
 $ git clone https://github.com/mrcirillo/relay-gorm-connector.git
@@ -19,18 +34,18 @@ $ cd relay-gorm-connector
 $ ./gradlew publishToMavenLocal
 ```
 
-Add the plugin as a `compile` dependency in your Grails project `build.gradle`.
+Add the plugin as a `compile` dependency in your Grails project.
 
 ```groovy
 dependencies {
-    compile 'io.cirill:relay-gorm-connector:0.4.0'
+    compile 'io.cirill:relay-gorm-connector:1.0.0'
 }
 ```
 
 ### Creating a Type
 Marking your domain classes to be used with GraphQL is easy. A GraphQL type will be created for any classes in the
-./grails-app/domains source root that has the `@RelayType` annotation. Fields of the domain class that should be
-accessible by GraphQL are marked with the `@RelayField` annotation.
+./grails-app/domains source root that has the `@RelayType` annotation. Fields on the domain class that are accessible
+to GraphQL are marked with the `@RelayField` annotation.
 
 ```groovy
 // person.groovy
@@ -40,7 +55,7 @@ class Person {
     @RelayField(description='An optional description of name')
     String name
 
-    Date dateCreated // hidden from GraphQL
+    Date dateCreated // no annotation? hidden from GraphQL
 }
 ```
 
@@ -205,8 +220,44 @@ GQLFieldSpec.field {
 
 Now we issue the query `query { personByName(name: "Ralph") { id, name } }` to give Relay info about our buddy Ralph!
 
+### Enum Types
+GraphQL supports `enum` types. Mark an `enum` definition on a domain class with `@RelayEnum` and it will be added to the
+GraphQL schema. The containing class needs to have `@RelayType`.
+
+```groovy
+@RelayType
+class Person {
+
+    @RelayEnum
+    enum Status {
+        Single,
+        Married,
+        ItsComplicated
+    }
+
+    @RelayField
+    Status status
+}
+```
+
+Enums can be used as arguments or as fields. *Note:* due to a limitation in `graphql-java` enum types can not be
+referenced with the DSL `ref` clause. As a workaround, a static map is available to look up any enum type that has been
+parsed by the application: `SchemaProvider.GLOBAL_ENUM_RESOLVE`. The map key is the actual enumerated type and the value
+is the GraphQL object that was created to represent it.
+
+```groovy
+// ...
+argument {
+    name 'status'
+    type {
+        nonNull SchemaProvider.GLOBAL_ENUM_RESOLVE[Status]
+    }
+}
+```
+
+
 ### RelayProxyFields
-What if you want to add a field to your relay type that doesn't have a GraphQL equivalent? A good example is a `Date` field. 
+What if you want to add a field to your Relay type that doesn't have a GraphQL equivalent? A good example is a `Date` field.
 GORM classes can save a `Date` type to the database, but marking it with `@RelayField` will result in an error. You can create
 a 'proxy' to deal with this using `@RelayProxyField`.
 
@@ -233,7 +284,8 @@ class Person {
 ```
 
 Relay can now query `query { personByName(name: "Ralph") { id, name, dateCreatedMs } }` to get information about when Ralph
-was added to the database.
+was added to the database. The proxy field is useful for transforming data into something more serializable or calculating
+a value that only the frontend application would care about.
 
 ### Connections
 Connections are defined as static closure as well, this time with the `@RelayConnection` annotation. At a minimum, `edgeType`
@@ -361,3 +413,6 @@ static class AddFriendMutation implements DataFetcher {
 }
 ```
 Note that the DataFetcher returns an object whose structure mimics what was defined by `type`.
+
+<b>Pro tip:</b> Adding as much code as we've written above to a simple domain class can seriously clutter your code.
+Move these static fields to a Groovy `trait` instead.
