@@ -65,7 +65,7 @@ public class SchemaProvider {
         }
 
         // build root edgeFields for mutations
-	    def mutationBuilder = newObject().name('mutationType') // TODO
+	    def mutationBuilder = newObject().name('mutationType')
 
 	    typeResolve.each { domainObj, gqlObj ->
             def mutationNames = domainObj.declaredFields.findAll({ it.isAnnotationPresent(RelayMutation) })*.name
@@ -73,6 +73,7 @@ public class SchemaProvider {
 	    }
 
         List<GraphQLType> allTypes = []
+        allTypes << nodeInterface
         allTypes.addAll typeResolve.values()
         allTypes.addAll enumResolve.values()
 
@@ -184,12 +185,7 @@ public class SchemaProvider {
                             throw new Exception("Illegal relay type $genericType.simpleName for connectionType at ${domainClass.name + '.' + domainClassField.name}")
                         }
 
-                        // TODO implement SimpleConnection
-//                        List<GraphQLFieldDefinition> args = new ArrayList<>()
                         def typeForEdge = new GraphQLTypeReference(genericType.simpleName)
-//                        GraphQLObjectType edgeType = relay.edgeType(typeForEdge.name, typeForEdge, nodeInterface, args)
-//                        GraphQLObjectType connectionType = relay.connectionType(typeForEdge.name, edgeType, args)
-//                        fieldBuilder.type(connectionType)
                         fieldBuilder.type(new GraphQLList(typeForEdge))
                         fieldBuilder.dataFetcher({ env ->
                             def obj = env.getSource()
