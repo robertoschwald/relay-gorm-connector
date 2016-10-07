@@ -28,7 +28,8 @@ public class GQLInputObjectFieldSpec {
 
     public static GraphQLInputObjectField field(@DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = GQLInputObjectFieldSpec) Closure cl) {
         GQLInputObjectFieldSpec gms = new GQLInputObjectFieldSpec()
-        Closure code = cl.rehydrate(gms, cl.owner, this)
+        def owner = Closure.isAssignableFrom(cl.owner.class) ? cl.owner.owner : cl.owner
+        Closure code = cl.rehydrate(gms, owner, cl.thisObject)
         code.resolveStrategy = Closure.DELEGATE_FIRST
         code()
         return gms.build()

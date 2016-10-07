@@ -34,7 +34,8 @@ public class GQLMutationSpec extends GQLFieldSpec {
 
     public static GraphQLFieldDefinition field(@DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = GQLMutationSpec) Closure cl) {
         GQLMutationSpec gms = new GQLMutationSpec()
-        Closure code = cl.rehydrate(gms, cl.owner, this)
+        def owner = Closure.isAssignableFrom(cl.owner.class) ? cl.owner.owner : cl.owner
+        Closure code = cl.rehydrate(gms, owner, cl.thisObject)
         code.resolveStrategy = Closure.DELEGATE_FIRST
         code()
         return gms.build()

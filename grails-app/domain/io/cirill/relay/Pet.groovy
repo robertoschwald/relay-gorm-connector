@@ -2,6 +2,7 @@ package io.cirill.relay
 
 import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
+import graphql.schema.GraphQLEnumType
 import io.cirill.relay.annotation.*
 import io.cirill.relay.dsl.GQLFieldSpec
 
@@ -19,7 +20,7 @@ class Pet {
             argument {
                 name 'species'
                 type {
-                    nonNull SchemaProvider.GLOBAL_ENUM_RESOLVE[Species]
+                    nonNull enumResolve[Species] as GraphQLEnumType
                 }
             }
             type {

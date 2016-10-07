@@ -27,7 +27,8 @@ public class GQLArgumentSpec {
 
     public static GraphQLArgument argument(@DelegatesTo(strategy=Closure.DELEGATE_FIRST, value=GQLArgumentSpec) Closure cl) {
         GQLArgumentSpec obj = new GQLArgumentSpec()
-        Closure code = cl.rehydrate(obj, cl.owner, this)
+        def owner = Closure.isAssignableFrom(cl.owner.class) ? cl.owner.owner : cl.owner
+        Closure code = cl.rehydrate(obj, owner, cl.thisObject)
         code.resolveStrategy = Closure.DELEGATE_FIRST
         code()
         return obj.build()

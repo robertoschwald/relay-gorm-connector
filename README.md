@@ -38,7 +38,7 @@ Add the plugin as a `compile` dependency in your Grails project.
 
 ```groovy
 dependencies {
-    compile 'io.cirill:relay-gorm-connector:1.0.0'
+    compile 'io.cirill:relay-gorm-connector:1.2.0'
 }
 ```
 
@@ -241,16 +241,15 @@ class Person {
 ```
 
 Enums can be used as arguments or as fields. *Note:* due to a limitation in `graphql-java` enum types can not be
-referenced with the DSL `ref` clause. As a workaround, a static map is available to look up any enum type that has been
-parsed by the application: `SchemaProvider.GLOBAL_ENUM_RESOLVE`. The map key is the actual enumerated type and the value
-is the GraphQL object that was created to represent it.
+referenced with the DSL `ref` clause. As a workaround, a map is available to look up any enum type that has been
+parsed by the application:
 
 ```groovy
 // ...
 argument {
     name 'status'
     type {
-        nonNull SchemaProvider.GLOBAL_ENUM_RESOLVE[Status]
+        nonNull enumResolve[Status] as GraphQLEnumType
     }
 }
 ```

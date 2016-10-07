@@ -38,7 +38,8 @@ public class GQLInputObjectSpec {
 
     public static GraphQLInputObjectType inputObject(@DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = GQLMutationSpec) Closure cl) {
         GQLInputObjectSpec ios = new GQLInputObjectSpec()
-        Closure code = cl.rehydrate(ios, cl.owner, this)
+        def owner = Closure.isAssignableFrom(cl.owner.class) ? cl.owner.owner : cl.owner
+        Closure code = cl.rehydrate(ios, owner, cl.thisObject)
         code.resolveStrategy = Closure.DELEGATE_FIRST
         code()
         return ios.build()

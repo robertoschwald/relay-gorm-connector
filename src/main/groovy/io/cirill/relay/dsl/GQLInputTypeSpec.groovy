@@ -36,7 +36,8 @@ public class GQLInputTypeSpec {
 
     public static GraphQLInputType inputType(@DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = GQLInputTypeSpec) Closure cl) {
         GQLInputTypeSpec spec = new GQLInputTypeSpec()
-        Closure code = cl.rehydrate(spec, cl.owner, this)
+        def owner = Closure.isAssignableFrom(cl.owner.class) ? cl.owner.owner : cl.owner
+        Closure code = cl.rehydrate(spec, owner, cl.thisObject)
         code.resolveStrategy = Closure.DELEGATE_FIRST
         code()
         return spec.build()

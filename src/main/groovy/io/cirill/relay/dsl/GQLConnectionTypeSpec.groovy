@@ -34,7 +34,8 @@ public class GQLConnectionTypeSpec {
 
     public static GraphQLObjectType connectionType(@DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = GQLConnectionTypeSpec) Closure cl) {
         def conn = new GQLConnectionTypeSpec()
-        def code = cl.rehydrate(conn, cl.owner, this)
+        def owner = Closure.isAssignableFrom(cl.owner.class) ? cl.owner.owner : cl.owner
+        Closure code = cl.rehydrate(conn, owner, cl.thisObject)
         code.resolveStrategy = Closure.DELEGATE_FIRST
         code()
         return conn.build()
