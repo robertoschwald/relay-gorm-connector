@@ -1,6 +1,7 @@
 package io.cirill.relay.dsl
 
 import graphql.schema.GraphQLFieldDefinition
+import graphql.schema.GraphQLInterfaceType
 import graphql.schema.GraphQLList
 import graphql.schema.GraphQLNonNull
 import graphql.schema.GraphQLOutputType
@@ -18,6 +19,7 @@ public class GQLOutputTypeSpec {
     private GraphQLTypeReference ref
     private GraphQLList list
     private GraphQLNonNull nonNull
+    private List<GraphQLInterfaceType> interfaces = []
 
     void name(String n) { name = n }
     void description(String d) { description = d }
@@ -33,6 +35,9 @@ public class GQLOutputTypeSpec {
     void nonNull(@DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = GQLOutputTypeSpec) Closure cl) {
         nonNull(type(cl))
     }
+    void withInterface(GraphQLInterfaceType interfaceType) {
+        interfaces << interfaceType
+    }
 
     GraphQLOutputType build() {
         if (ref) {
@@ -42,7 +47,9 @@ public class GQLOutputTypeSpec {
         } else if (nonNull) {
             nonNull
         } else {
-            newObject().name(name).description(description).fields(fields).build()
+            def obj = newObject().name(name).description(description).fields(fields)
+            interfaces.each { obj.withInterface(it) }
+            obj.build()
         }
     }
 

@@ -1,6 +1,5 @@
 package io.cirill.relay
 
-import graphql.GraphQL
 import graphql.Scalars
 import graphql.relay.SimpleListConnection
 import graphql.schema.*
@@ -19,13 +18,12 @@ public class SchemaProvider {
 
     public Map<Class, GraphQLObjectType> typeResolve
     public Map<Class, GraphQLEnumType> enumResolve
-
-    private GraphQLSchema schema
+    public GraphQLInterfaceType nodeInterface
 
     private DataFetcher nodeDataFetcher
     private TypeResolver typeResolver = { object -> typeResolve[object.getClass()] }
-    private GraphQLInterfaceType nodeInterface
-    private GraphQL graphQL
+
+    def GraphQLSchema schema
 
     public SchemaProvider(DataFetcher ndf, Class... domainClasses) {
 
@@ -47,10 +45,7 @@ public class SchemaProvider {
         typeResolve = domainClasses.collectEntries { [it, classToGQLObject(it)] }
 
         schema = buildSchema()
-        graphQL = new GraphQL(schema)
     }
-
-	public GraphQL graphQL() { return graphQL }
 
     private GraphQLSchema buildSchema() {
 

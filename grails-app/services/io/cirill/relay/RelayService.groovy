@@ -1,8 +1,8 @@
 package io.cirill.relay
 
-import grails.core.GrailsApplication
 import graphql.GraphQL
 import graphql.schema.DataFetcher
+import graphql.schema.GraphQLInterfaceType
 import io.cirill.relay.annotation.RelayType
 
 public class RelayService {
@@ -28,14 +28,18 @@ public class RelayService {
         graphQL = null
     }
 
-    public def query(String query, Object context, Map variables) {
+    public GraphQLInterfaceType nodeInterface() {
+        schemaProvider.nodeInterface
+    }
+
+    public Map query(String query, Object context, Map variables) {
         if (graphQL == null) {
             domainArtefactCache = grailsApplication.getArtefacts('Domain')*.clazz
                     .findAll({ it.isAnnotationPresent(RelayType) })
                     .collectEntries { [it.simpleName, it] }
 
             schemaProvider = new SchemaProvider(nodeDataFetcher as DataFetcher , getRelayDomain())
-            graphQL = schemaProvider.graphQL()
+            graphQL = new GraphQL(schemaProvider.schema)
         }
         def result = graphQL.execute(query, context, variables)
         def ret = [:]
@@ -48,7 +52,7 @@ public class RelayService {
         return ret
     }
 
-    public def introspect() {
+    public Map introspect() {
         query RelayHelpers.INTROSPECTION_QUERY, null, [:]
     }
 }
