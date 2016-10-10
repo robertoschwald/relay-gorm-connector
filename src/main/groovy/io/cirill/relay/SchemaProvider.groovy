@@ -56,10 +56,7 @@ public class SchemaProvider {
         }
 
         // build root edgeFields for queries
-        def queryBuilder = newObject()
-                .name('queryType')
-                .field(RelayHelpers.nodeField(nodeInterface, nodeDataFetcher))
-
+        def queryBuilder = newObject().name('queryType').field(RelayHelpers.nodeField(nodeInterface, nodeDataFetcher))
         typeResolve.each { domainObj, gqlObj ->
             def queryNames = domainObj.declaredFields.findAll({ it.isAnnotationPresent(RelayQuery) })*.name
             queryBuilder.fields queryNames.collect { name ->
@@ -71,7 +68,6 @@ public class SchemaProvider {
 
         // build root edgeFields for mutations
 	    def mutationBuilder = newObject().name('mutationType')
-
 	    typeResolve.each { domainObj, gqlObj ->
             def mutationNames = domainObj.declaredFields.findAll({ it.isAnnotationPresent(RelayMutation) })*.name
             mutationBuilder.fields mutationNames.collect { name ->
@@ -81,12 +77,22 @@ public class SchemaProvider {
             }
 	    }
 
+        queryBuilder = queryBuilder.build()
+        mutationBuilder = mutationBuilder.build()
+
         List<GraphQLType> allTypes = []
         allTypes << nodeInterface
         allTypes.addAll typeResolve.values()
         allTypes.addAll enumResolve.values()
 
-        GraphQLSchema.newSchema().query(queryBuilder.build()).mutation(mutationBuilder.build()).build(allTypes.toSet())
+        def r = GraphQLSchema.newSchema()
+        if (queryBuilder.fieldDefinitions.size() > 0) {
+            r.query(queryBuilder)
+        }
+        if (mutationBuilder.fieldDefinitions.size() > 0) {
+            r.mutation(mutationBuilder)
+        }
+        r.build(allTypes.toSet())
     }
 
     private GraphQLObjectType classToGQLObject(Class domainClass) {
