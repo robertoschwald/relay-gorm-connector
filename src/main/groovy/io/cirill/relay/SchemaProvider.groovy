@@ -252,8 +252,8 @@ public class SchemaProvider {
     private static GraphQLEnumType classToGQLEnum(Class type, String description) {
         def enumBuilder = newEnum().name(type.simpleName).description(description)
 
-        type.declaredFields.each { field ->
-            enumBuilder.value(field.name)
+        for (def it : EnumSet.allOf(type)) {
+            enumBuilder.value(it.toString())
         }
 
         enumBuilder.build()
