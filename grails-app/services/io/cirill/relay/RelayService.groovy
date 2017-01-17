@@ -2,6 +2,7 @@ package io.cirill.relay
 
 import graphql.GraphQL
 import graphql.schema.DataFetcher
+import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLInterfaceType
 import io.cirill.relay.annotation.RelayType
 
@@ -19,9 +20,14 @@ public class RelayService {
         domainArtefactCache.values()
     }
 
-    protected Closure nodeDataFetcher = { environment ->
+    protected Closure nodeDataFetcher = { DataFetchingEnvironment environment ->
         def decoded = RelayHelpers.fromGlobalId(environment.arguments.id as String)
-        domainArtefactCache."$decoded.type".findById decoded.id
+        def domainType = domainArtefactCache."$decoded.type"
+
+        // eagerly load associations
+        def eagerLoad = RelayHelpers.eagerAssociationStrings(environment).collect { [ "$it": 'eager' ] }
+
+	    domainType.findById(decoded.id, [fetch: eagerLoad ])
     }
 
     void resetGraphQL() {

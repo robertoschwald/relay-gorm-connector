@@ -1,5 +1,7 @@
 package io.cirill.relay
 
+import graphql.language.Field
+import graphql.language.InlineFragment
 import graphql.relay.Relay
 import graphql.relay.Relay.ResolvedGlobalId
 import graphql.schema.*
@@ -43,6 +45,33 @@ public class RelayHelpers {
     public static List<GraphQLArgument> relayArgs() {
         relay.connectionFieldArguments
     }
+
+	public static List<String> eagerAssociationStrings(DataFetchingEnvironment env) {
+		env.fields.collectMany { queryField ->
+
+			// extract fragments from the query
+			List<InlineFragment> fragments = queryField.selectionSet.selections*.asType InlineFragment
+			fragments.collectMany { fragment ->
+
+				// extract fields from the fragment
+				fragment.selectionSet.selections.collectMany { fragmentField ->
+					Field field = fragmentField as Field
+
+					// recursively analyze fields
+					eagerAssocationStrings('', field) as Collection<String>
+				} as Collection<String>
+			} as Collection<String>
+		} as List<String>
+	}
+
+	private static List<String> eagerAssocationStrings(String path, Field field) {
+		String fieldPath = path + field.name
+		List<String> ret = [ fieldPath ]
+		if (field.selectionSet?.selections) {
+			ret.addAll(field.selectionSet.selections.collectMany({ selection -> eagerAssocationStrings(fieldPath + '.', selection as Field) }))
+		}
+		ret
+	}
 
     public final static String INTROSPECTION_QUERY =
 """
