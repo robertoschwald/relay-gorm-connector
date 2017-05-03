@@ -32,6 +32,7 @@ a local Grails project is to clone this repo and build it.
 $ git clone https://github.com/mrcirillo/relay-gorm-connector.git
 $ cd relay-gorm-connector
 $ git checkout grails2
+$ ./grailsw compile
 $ ./grailsw maven-install
 ```
 
