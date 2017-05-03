@@ -36,6 +36,14 @@ $ ./grailsw compile
 $ ./grailsw maven-install
 ```
 
+Note: If you want to use the plugin with Java 1.7 (e.g. if you run Grails < 2.5.5), you must use Java 7 to compile / package the plugin. 
+On OSX this can be achived by performing:
+```
+export JAVA_HOME=`/usr/libexec/java_home -v 1.7`
+export PATH=${JAVA_HOME}/bin:$PATH
+java -version
+```
+
 Add the plugin as a `compile` dependency in your Grails project.
 
 ```groovy
