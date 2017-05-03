@@ -1,9 +1,11 @@
-package io.cirill.relay
+package io.cirill.relay.io.cirill.relay
 
 import graphql.GraphQL
 import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLInterfaceType
+import io.cirill.relay.RelayHelpers
+import io.cirill.relay.SchemaProvider
 import io.cirill.relay.annotation.RelayType
 
 public class RelayService {

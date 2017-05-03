@@ -1,4 +1,4 @@
-# relay-gorm-connector
+# relay-gorm-connector (Grails 2.x)
 
 ## Capabilities
 The purpose of this plugin is to easily translate Grails ORM domain classes into a GrahphQL schema that is compatible
@@ -31,14 +31,15 @@ a local Grails project is to clone this repo and build it.
 ```bash
 $ git clone https://github.com/mrcirillo/relay-gorm-connector.git
 $ cd relay-gorm-connector
-$ ./gradlew publishToMavenLocal
+$ git checkout grails2
+$ ./grailsw maven-install
 ```
 
 Add the plugin as a `compile` dependency in your Grails project.
 
 ```groovy
 dependencies {
-    compile 'io.cirill:relay-gorm-connector:1.2.0'
+    compile 'io.cirill:relay-gorm-connector:1.2.5' // TODO: Separate versioning for Grails2 variant
 }
 ```
 

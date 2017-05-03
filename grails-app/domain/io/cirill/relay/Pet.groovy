@@ -3,7 +3,10 @@ package io.cirill.relay
 import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLEnumType
-import io.cirill.relay.annotation.*
+import io.cirill.relay.annotation.RelayEnum
+import io.cirill.relay.annotation.RelayField
+import io.cirill.relay.annotation.RelayQuery
+import io.cirill.relay.annotation.RelayType
 import io.cirill.relay.dsl.GQLFieldSpec
 
 @RelayType
