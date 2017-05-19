@@ -69,6 +69,20 @@ dependencies {
     compile 'io.cirill:relay-gorm-connector:1.2.5' // TODO: Separate versioning for Grails2 variant
 }
 ```
+### Graphql artifacts
+New feature introduced in this Grails 2.x version: 
+It's not always desirable to map Domain classes directly to the Graphql output. 
+So with this Grails 2.x implementation your are able to define your Graphql artifacts either by annotating Domain classes,
+or any Class in grails-app/graphql directory. This way, you are able to decouple Domain classes from their 
+Graphql representation. 
+
+#### Creating Graphql Artifacts
+```
+grails create-graphql <my.package.artifactname>
+```
+
+### Plugin Name
+TODO: rename plugin to grails-graphql-plugin
 
 ### Creating a Type
 Marking your domain classes to be used with GraphQL is easy. A GraphQL type will be created for any classes in the
