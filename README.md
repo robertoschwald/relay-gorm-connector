@@ -28,25 +28,6 @@ dependency on `graphql-java` some upstream work may be necessary as well.
 This plugin is not available (yet) in the official Grails plugin repo. The best way to make this plugin available to
 a local Grails project is to clone this repo and build it.
 
-If you have your own repository server, you can use it to deploy the plugin privately. 
-By default, the repo-name is "artifactory" for now in BuildConfig.groovy.
-
-Setup in ~/.grails/settings.groovy:
-```
-// publish Grails Plugins to local Artifactory (SNAPSHOT AND RELEASE versions)
-// If you want to publish a private plugin, set
-// grails.project.repos.default = "artifactory" in BuildConfig.groovy of the plugin
-grails.project.repos.artifactory.url = "https://your_repo_server/grails-plugins-local"
-grails.project.repos.artifactory.username = "yourname"
-grails.project.repos.artifactory.password = "yourpass"
-```
-
-Then deploy the plugin:
-```
-grails publish-plugin --noScm -verbose
-```
-This setting will be removed from BuildConfig.groovy as soon as the plugin is released to the Grails repo.
-
 To install the plugin, perform:
 
 ```bash
@@ -72,6 +53,28 @@ dependencies {
     compile 'io.cirill:relay-gorm-connector:1.2.5' // TODO: Separate versioning for Grails2 variant
 }
 ```
+
+### Deploy to private Maven Repository
+If you have your own repository server, you can use it to deploy the plugin privately for now. 
+By default, the repo-name is "artifactory" in BuildConfig.groovy.
+
+Setup ~/.grails/settings.groovy:
+```
+// publish Grails Plugins to local Artifactory (SNAPSHOT AND RELEASE versions)
+// If you want to publish a private plugin, set
+// grails.project.repos.default = "artifactory" in BuildConfig.groovy of the plugin
+grails.project.repos.artifactory.url = "https://your_repo_server/grails-plugins-local"
+grails.project.repos.artifactory.username = "yourname"
+grails.project.repos.artifactory.password = "yourpass"
+```
+
+Then deploy the plugin:
+```
+grails publish-plugin --noScm -verbose
+```
+This setting will be removed from BuildConfig.groovy as soon as the plugin is released to the Grails repo.
+
+
 ### Graphql artifacts
 New feature introduced in this Grails 2.x version: 
 It's not always desirable to map Domain classes directly to the Graphql output. 
