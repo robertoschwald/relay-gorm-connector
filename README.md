@@ -1,4 +1,4 @@
-# relay-gorm-connector (Grails 2.x)
+# relay-gorm-connector (Grails 2.x plugin)
 
 ## Capabilities
 The purpose of this plugin is to easily translate Grails ORM domain classes into a GrahphQL schema that is compatible
