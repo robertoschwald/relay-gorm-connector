@@ -20,7 +20,7 @@ dependency on `graphql-java` some upstream work may be necessary as well.
 
 ## Getting Started
 ### Requirements
-* Grails >= 3.0
+* Grails 2.x
 * Some knowledge of GraphQL/Relay https://facebook.github.io/relay/
 * Some knowledge of GORM http://docs.grails.org/latest/guide/GORM.html
 
