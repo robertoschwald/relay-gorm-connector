@@ -39,6 +39,11 @@ grails.project.repos.artifactory.url = "https://your_repo_server/grails-plugins-
 grails.project.repos.artifactory.username = "yourname"
 grails.project.repos.artifactory.password = "yourpass"
 ```
+
+Then deploy the plugin:
+```
+grails publish-plugin --noScm -verbose
+```
 This setting will be removed from BuildConfig.groovy as soon as the plugin is released to the Grails repo.
 
 ```bash
