@@ -28,8 +28,21 @@ dependency on `graphql-java` some upstream work may be necessary as well.
 This plugin is not available (yet) in the official Grails plugin repo. The best way to make this plugin available to
 a local Grails project is to clone this repo and build it.
 
+If you have an on repository server, you can use it to deploy privately for now. 
+By default, the repo-name is "artifactory" for now in BuildConfig.groovy.
+Setup in ~/.grails/settings.groovy:
+```
+// publish Grails Plugins to local Artifactory (SNAPSHOT AND RELEASE versions)
+// If you want to publish a private plugin, set
+// grails.project.repos.default = "artifactory" in BuildConfig.groovy of the plugin
+grails.project.repos.artifactory.url = "https://your_repo_server/grails-plugins-local"
+grails.project.repos.artifactory.username = "yourname"
+grails.project.repos.artifactory.password = "yourpass"
+```
+This setting will be removed from BuildConfig.groovy as soon as the plugin is released to the Grails repo.
+
 ```bash
-$ git clone https://github.com/mrcirillo/relay-gorm-connector.git
+$ git clone https://github.com/robertoschwald/relay-gorm-connector.git
 $ cd relay-gorm-connector
 $ git checkout grails2
 $ ./grailsw compile
