@@ -1,7 +1,7 @@
 # relay-gorm-connector (Grails 2.x plugin)
 
 ## Capabilities
-The purpose of this plugin is to easily translate Grails ORM domain classes into a GrahphQL schema that is compatible
+The purpose of this plugin is to easily translate Grails ORM domain classes or Graphql Artifact classes into a GrahphQL schema that is compatible
 with Relay.js. Under the hood `graphql-java` (https://github.com/graphql-java/graphql-java) is being used dynamically
 to generate the schema.
 
@@ -22,14 +22,15 @@ dependency on `graphql-java` some upstream work may be necessary as well.
 ### Requirements
 * Grails 2.x
 * Some knowledge of GraphQL/Relay https://facebook.github.io/relay/
-* Some knowledge of GORM http://docs.grails.org/latest/guide/GORM.html
+* Some knowledge of GORM http://docs.grails.org/latest/guide/GORM.html (if not using Graphql artifacts)
 
 ### Installation
 This plugin is not available (yet) in the official Grails plugin repo. The best way to make this plugin available to
 a local Grails project is to clone this repo and build it.
 
-If you have an on repository server, you can use it to deploy privately for now. 
+If you have your own repository server, you can use it to deploy the plugin privately. 
 By default, the repo-name is "artifactory" for now in BuildConfig.groovy.
+
 Setup in ~/.grails/settings.groovy:
 ```
 // publish Grails Plugins to local Artifactory (SNAPSHOT AND RELEASE versions)
@@ -45,6 +46,8 @@ Then deploy the plugin:
 grails publish-plugin --noScm -verbose
 ```
 This setting will be removed from BuildConfig.groovy as soon as the plugin is released to the Grails repo.
+
+To install the plugin, perform:
 
 ```bash
 $ git clone https://github.com/robertoschwald/relay-gorm-connector.git
