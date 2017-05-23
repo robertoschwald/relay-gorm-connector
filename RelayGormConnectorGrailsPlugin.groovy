@@ -2,7 +2,7 @@ import io.cirill.relay.annotation.RelayType
 import io.cirill.relay.artefact.GraphqlArtefactHandler
 
 class RelayGormConnectorGrailsPlugin {
-    def version = "1.2.5-SNAPSHOT"
+    def version = "2.2.5-SNAPSHOT"
     def grailsVersion = "2.0 > *"
     def pluginExcludes = [
       "**/Pet**",
