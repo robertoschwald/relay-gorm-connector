@@ -50,7 +50,7 @@ class RelayGormConnectorGrailsPlugin extends Plugin {
 //    def scm = [ url: "http://svn.codehaus.org/grails-plugins/" ]
 
     Closure doWithSpring() {{->
-        applicationContext.graphqlClasses.each { graphqlClass ->
+        application.graphqlClasses.each { graphqlClass ->
             "${graphqlClass.propertyName}"(graphqlClass.clazz) { bean ->
                 bean.autowire = "byName"
             }
@@ -65,14 +65,13 @@ class RelayGormConnectorGrailsPlugin extends Plugin {
         // TODO Implement post initialization spring config (optional)
     }
 
-    // register the 'Task' artefact handler
     final List<ArtefactHandler> artefacts = [new GraphqlArtefactHandler()]
 
     def watchedResources = [
             "file:./grails-app/domain/*.groovy",
             'file:./grails-app/domain/**/*.groovy',
             "file:./grails-app/graphql/**/*Graphql.groovy",
-            "file:../../plugins/*/graphql/**/*Graphql.groovy"
+            "file:./plugins/*/graphql/**/*Graphql.groovy"
     ]
 
     void onChange(Map<String, Object> event) {
@@ -83,15 +82,15 @@ class RelayGormConnectorGrailsPlugin extends Plugin {
             }
         }
         // Register GraphQL Artifacts
-        if (applicationContext.isArtefactOfType(GraphqlArtefactHandler.TYPE, event.source)) {
-            def oldClass = applicationContext.getTaskClass(event.source.name)
-            applicationContext.addArtefact(GraphqlArtefactHandler.TYPE, event.source)
+        if (grailsApplication.isArtefactOfType(GraphqlArtefactHandler.TYPE, event.source)) {
+            def oldClass = grailsApplication.getGraphqlClass(event.source.name)
+            grailsApplication.addArtefact(GraphqlArtefactHandler.TYPE, event.source)
 
             // Reload subclasses
-            application.graphql.each {
+            grailsApplication.graphqlClasses.each {
                 if (it?.clazz != event.source && oldClass.clazz.isAssignableFrom(it?.clazz)) {
-                    def newClass = application.classLoader.reloadClass(it.clazz.name)
-                    application.addArtefact(GraphqlArtefactHandler.TYPE, newClass)
+                    def newClass = grailsApplication.classLoader.reloadClass(it.clazz.name)
+                    grailsApplication.addArtefact(GraphqlArtefactHandler.TYPE, newClass)
                 }
             }
         }
