@@ -1,9 +1,10 @@
 package io.cirill
 
-import grails.plugins.*
+import grails.core.ArtefactHandler
+import grails.plugins.Plugin
 import io.cirill.relay.RelayService
 import io.cirill.relay.annotation.RelayType
-import org.grails.core.DefaultGrailsServiceClass
+import io.cirill.relay.artefact.GraphqlArtefactHandler
 
 class RelayGormConnectorGrailsPlugin extends Plugin {
 
@@ -49,6 +50,11 @@ class RelayGormConnectorGrailsPlugin extends Plugin {
 //    def scm = [ url: "http://svn.codehaus.org/grails-plugins/" ]
 
     Closure doWithSpring() {{->
+        applicationContext.graphqlClasses.each { graphqlClass ->
+            "${graphqlClass.propertyName}"(graphqlClass.clazz) { bean ->
+                bean.autowire = "byName"
+            }
+        }
     }}
 
     void doWithDynamicMethods() {
@@ -59,9 +65,14 @@ class RelayGormConnectorGrailsPlugin extends Plugin {
         // TODO Implement post initialization spring config (optional)
     }
 
+    // register the 'Task' artefact handler
+    final List<ArtefactHandler> artefacts = [new GraphqlArtefactHandler()]
+
     def watchedResources = [
             "file:./grails-app/domain/*.groovy",
-            'file:./grails-app/domain/**/*.groovy'
+            'file:./grails-app/domain/**/*.groovy',
+            "file:./grails-app/graphql/**/*Graphql.groovy",
+            "file:../../plugins/*/graphql/**/*Graphql.groovy"
     ]
 
     void onChange(Map<String, Object> event) {
@@ -69,6 +80,19 @@ class RelayGormConnectorGrailsPlugin extends Plugin {
             Class c = (Class) event.source
             if (c.isAnnotationPresent(RelayType)) {
                 applicationContext.getBeansOfType(RelayService).values()*.resetGraphQL()
+            }
+        }
+        // Register GraphQL Artifacts
+        if (applicationContext.isArtefactOfType(GraphqlArtefactHandler.TYPE, event.source)) {
+            def oldClass = applicationContext.getTaskClass(event.source.name)
+            applicationContext.addArtefact(GraphqlArtefactHandler.TYPE, event.source)
+
+            // Reload subclasses
+            application.graphql.each {
+                if (it?.clazz != event.source && oldClass.clazz.isAssignableFrom(it?.clazz)) {
+                    def newClass = application.classLoader.reloadClass(it.clazz.name)
+                    application.addArtefact(GraphqlArtefactHandler.TYPE, newClass)
+                }
             }
         }
     }

@@ -5,6 +5,7 @@ import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLInterfaceType
 import io.cirill.relay.annotation.RelayType
+import io.cirill.relay.artefact.GraphqlArtefactHandler
 
 public class RelayService {
 
@@ -43,7 +44,8 @@ public class RelayService {
             domainArtefactCache = grailsApplication.getArtefacts('Domain')*.clazz
                     .findAll({ it.isAnnotationPresent(RelayType) })
                     .collectEntries { [it.simpleName, it] }
-
+            domainArtefactCache << grailsApplication.getArtefacts(GraphqlArtefactHandler.TYPE)*.clazz
+              .collectEntries { [it.simpleName, it] }
             schemaProvider = new SchemaProvider(nodeDataFetcher as DataFetcher , getRelayDomain())
             graphQL = new GraphQL(schemaProvider.schema)
         }
