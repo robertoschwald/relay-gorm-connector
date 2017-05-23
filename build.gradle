@@ -16,7 +16,7 @@ plugins {
   id "com.jfrog.bintray" version "1.6"
 }
 
-version "1.2.5-SNAPSHOT"
+version "3.2.5-SNAPSHOT"
 group "io.cirill"
 
 apply plugin:"eclipse"
