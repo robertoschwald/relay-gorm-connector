@@ -1,6 +1,5 @@
 import io.cirill.relay.annotation.RelayType
 import io.cirill.relay.artefact.GraphqlArtefactHandler
-import org.springframework.core.io.FileSystemResource
 
 class RelayGormConnectorGrailsPlugin {
     def version = "1.2.5-SNAPSHOT"
@@ -42,12 +41,13 @@ class RelayGormConnectorGrailsPlugin {
         // TODO Implement additions to web.xml (optional), this event occurs before
     }
 
-    // register the 'Task' artefact handler
     def artefacts = [new GraphqlArtefactHandler()]
 
     def watchedResources = [
+      "file:./grails-app/domain/*.groovy",
+      'file:./grails-app/domain/**/*.groovy',
       "file:./grails-app/graphql/**/*Graphql.groovy",
-      "file:../../plugins/*/tasks/**/*Graphql.groovy"
+      "file:./plugins/*/graphql/**/*Graphql.groovy"
     ]
 
     def doWithSpring = {
@@ -75,16 +75,16 @@ class RelayGormConnectorGrailsPlugin {
         }
         // Register GraphQL Artifacts
         if (application.isArtefactOfType(GraphqlArtefactHandler.TYPE, event.source)) {
-            def oldClass = application.getTaskClass(event.source.name)
+            def oldClass = application.getGraphqlClass(event.source.name)
             application.addArtefact(GraphqlArtefactHandler.TYPE, event.source)
 
-//            // Reload subclasses
-//            application.someHandlerClasses.each {
-//                if (it?.clazz != event.source && oldClass.clazz.isAssignableFrom(it?.clazz)) {
-//                    def newClass = application.classLoader.reloadClass(it.clazz.name)
-//                    application.addArtefact(GraphqlArtefactHandler.TYPE, newClass)
-//                }
-//            }
+            // Reload subclasses
+            application.graphql.each {
+                if (it?.clazz != event.source && oldClass.clazz.isAssignableFrom(it?.clazz)) {
+                    def newClass = application.classLoader.reloadClass(it.clazz.name)
+                    application.addArtefact(GraphqlArtefactHandler.TYPE, newClass)
+                }
+            }
         }
     }
 
