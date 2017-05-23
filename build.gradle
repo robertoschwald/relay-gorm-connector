@@ -11,13 +11,23 @@ buildscript {
 	}
 }
 
-version "1.2.4"
+plugins {
+  id "io.spring.dependency-management" version "0.5.2.RELEASE"
+  id "com.jfrog.bintray" version "1.6"
+}
+
+version "1.2.5-SNAPSHOT"
 group "io.cirill"
 
 apply plugin:"eclipse"
 apply plugin:"idea"
 apply plugin:"org.grails.grails-plugin"
-apply plugin:"org.grails.grails-plugin-publish"
+apply plugin: "org.grails.grails-doc"
+apply plugin: 'maven-publish'
+// Used for publishing to central repository, remove if not needed
+apply from:'https://raw.githubusercontent.com/grails/grails-profile-repository/master/profiles/plugin/templates/grailsCentralPublishing.gradle'
+apply from:'https://raw.githubusercontent.com/grails/grails-profile-repository/master/profiles/plugin/templates/bintrayPublishing.gradle'
+
 
 ext {
     grailsVersion = project.grailsVersion
@@ -38,13 +48,18 @@ dependencyManagement {
 }
 
 dependencies {
-	compile "org.springframework.boot:spring-boot-starter-logging"
-	compile "org.springframework.boot:spring-boot-autoconfigure"
-	compile "org.grails:grails-core"
-	profile "org.grails.profiles:web-plugin"
-	provided "org.grails:grails-plugin-services"
-	provided "org.grails:grails-plugin-domain-class"
+  provided "org.springframework.boot:spring-boot-starter-logging"
+  provided "org.springframework.boot:spring-boot-starter-actuator"
+  provided "org.springframework.boot:spring-boot-autoconfigure"
+  provided "org.springframework.boot:spring-boot-starter-tomcat"
+
+  provided "org.grails:grails-web-boot"
+  provided "org.grails:grails-dependencies"
+  provided 'javax.servlet:javax.servlet-api:3.1.0'
+
 	testCompile "org.grails:grails-plugin-testing"
+
+  console "org.grails:grails-console"
 
   // graphql library
   compile 'com.graphql-java:graphql-java:2.2.0'
@@ -75,22 +90,3 @@ idea {
     scopes.PROVIDED.plus += [configurations.provided]
   }
 }
-
-grailsPublish {
-    // TODO: Provide values here
-    user = 'user'
-    key = 'key'
-    githubSlug = 'foo/bar'
-    license {
-        name = 'Apache-2.0'
-    }
-    title = "My Plugin"
-    desc = "Full plugin description"
-    developers = [johndoe:"John Doe"]
-    portalUser = ""
-    portalPassword = ""
-}
-
-//assets {
-//	packagePlugin = true
-//}
