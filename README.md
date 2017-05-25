@@ -1,4 +1,4 @@
-# relay-gorm-connector Grails 3 plugin
+# relay-gorm-connector
 
 ## Capabilities
 The purpose of this plugin is to easily translate Grails ORM domain classes into a GrahphQL schema that is compatible
@@ -17,9 +17,6 @@ There are some unsupported GraphQL features still. Here they are in order of des
 2. Custom Union and Interface GraphQL types
 3. Relay2 support. Relay2 is still in the pipes at Facebook but we will have a new library soon. Due to this plugin's
 dependency on `graphql-java` some upstream work may be necessary as well.
-
-## Grails 2.x
-For the Grails 2.x version of this plugin, see [Grails2 branch](../../tree/grails2)
 
 ## Getting Started
 ### Requirements
