@@ -74,23 +74,10 @@ grails publish-plugin --noScm -verbose
 ```
 This setting will be removed from BuildConfig.groovy as soon as the plugin is released to the Grails repo.
 
-
-### Graphql artifacts
-New feature introduced in this Grails 2.x version: 
-It's not always desirable to map Domain classes directly to the Graphql output. 
-So with this Grails 2.x implementation your are able to define your Graphql artifacts either by annotating Domain classes,
-or any Class in grails-app/graphql directory. This way, you are able to decouple Domain classes from their 
-Graphql representation. 
-
-#### Creating Graphql Artifacts
-```
-grails create-graphql <my.package.artifactname>
-```
-
 ### Plugin Name
-TODO: rename plugin to grails-graphql-plugin
+TODO: rename plugin to grails-graphql
 
-### Creating a Type
+### Creating a Domain Graphql Type
 Marking your domain classes to be used with GraphQL is easy. A GraphQL type will be created for any classes in the
 ./grails-app/domains source root that has the `@RelayType` annotation. Fields on the domain class that are accessible
 to GraphQL are marked with the `@RelayField` annotation.
@@ -121,6 +108,16 @@ annotated with `@RelayField`. The types are as follows:
 4. `BigDecimal`
 5. `List<@RelayType>`
 6. Any other `@RelayType`
+
+### Creating Graphql Artifacts 
+It's not always desirable to map Domain classes directly to the Graphql output. 
+
+You are able to define your Graphql artifacts either by annotating Domain classes (see above),
+or "Graphql" Classes in the grails-app/graphql directory. This way, you are able to decouple Domain classes from their 
+Graphql representation. 
+```
+grails create-graphql <my.package.artifactname>
+```
 
 ## Usage
 Because this plugin is designed to support Relay, the Relay node interface is automatically implemented by every type
