@@ -2,7 +2,7 @@
 
 ## Capabilities
 The purpose of this plugin is to easily translate Grails ORM domain classes or Graphql Artifact classes into a GrahphQL schema that is compatible
-with Relay.js. Under the hood `graphql-java` (https://github.com/graphql-java/graphql-java) is being used dynamically
+with Relay.js / Apollo. Under the hood `graphql-java` (https://github.com/graphql-java/graphql-java) is being used dynamically
 to generate the schema.
 
 With this plugin a Grails app can serve a modern React/Relay frontend! Following Relay philosophy, the resulting GraphQL
@@ -113,7 +113,7 @@ annotated with `@RelayField`. The types are as follows:
 It's not always desirable to map Domain classes directly to the Graphql output. 
 
 You are able to define your Graphql artifacts either by annotating Domain classes (see above),
-or "Graphql" Classes in the grails-app/graphql directory. This way, you are able to decouple Domain classes from their 
+or by creating "Graphql" Classes in the grails-app/graphql directory. This way, you are able to decouple Domain classes from their 
 Graphql representation. 
 ```
 grails create-graphql <my.package.artifactname>
@@ -459,4 +459,4 @@ static class AddFriendMutation implements DataFetcher {
 Note that the DataFetcher returns an object whose structure mimics what was defined by `type`.
 
 <b>Pro tip:</b> Adding as much code as we've written above to a simple domain class can seriously clutter your code.
-Move these static fields to a Groovy `trait` instead.
+Move these static fields either to a Groovy `trait` instead, or create a Graphql artifact instead.
