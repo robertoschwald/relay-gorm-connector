@@ -427,4 +427,4 @@ static class AddFriendMutation implements DataFetcher {
 Note that the DataFetcher returns an object whose structure mimics what was defined by `type`.
 
 <b>Pro tip:</b> Adding as much code as we've written above to a simple domain class can seriously clutter your code.
-Move these static fields to a Groovy `trait` instead.
+Move these static fields to a Groovy `trait` instead, or create a Graphql artifact instead.
