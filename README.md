@@ -50,7 +50,7 @@ Add the plugin as a `compile` dependency in your Grails project.
 
 ```groovy
 dependencies {
-    compile 'io.cirill:relay-gorm-connector:1.2.5' // TODO: Separate versioning for Grails2 variant
+    compile 'io.cirill:relay-gorm-connector:2.2.5-SNAPSHOT' 
 }
 ```
 
