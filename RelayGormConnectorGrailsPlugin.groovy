@@ -80,7 +80,7 @@ class RelayGormConnectorGrailsPlugin {
             application.addArtefact(GraphqlArtefactHandler.TYPE, event.source)
 
             // Reload subclasses
-            application.graphql.each {
+            application.graphqlClasses.each {
                 if (it?.clazz != event.source && oldClass.clazz.isAssignableFrom(it?.clazz)) {
                     def newClass = application.classLoader.reloadClass(it.clazz.name)
                     application.addArtefact(GraphqlArtefactHandler.TYPE, newClass)
