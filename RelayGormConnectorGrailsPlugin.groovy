@@ -1,5 +1,6 @@
 import io.cirill.relay.annotation.RelayType
 import io.cirill.relay.artefact.GraphqlArtefactHandler
+import io.cirill.relay.RelayService
 
 class RelayGormConnectorGrailsPlugin {
     def version = "2.2.5-SNAPSHOT"
