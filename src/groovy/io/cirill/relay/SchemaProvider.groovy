@@ -54,12 +54,20 @@ public class SchemaProvider {
         // build root edgeFields for queries
         def queryBuilder = graphql.schema.GraphQLObjectType.newObject().name('queryType').field(RelayHelpers.nodeField(nodeInterface, nodeDataFetcher))
         typeResolve.each { domainObj, gqlObj ->
+
             def queryNames = domainObj.declaredFields.findAll({ it.isAnnotationPresent(RelayQuery) })*.name
             queryBuilder.fields queryNames.collect { name ->
                 Closure<GraphQLFieldDefinition> source = domainObj."$name"
                 def code = source.rehydrate(source.delegate, thisObject, source.thisObject)
                 code()
             }
+
+            def queriesNames = domainObj.declaredFields.findAll({ it.isAnnotationPresent(GraphQLQueries) })*.name
+            queryBuilder.fields queriesNames.collect { name ->
+                Closure<List<GraphQLFieldDefinition>> sources = domainObj."$name"
+                def code = sources.rehydrate(sources.delegate, thisObject, sources.thisObject)
+                code()
+            }.flatten() as List<GraphQLFieldDefinition>
         }
 
         // build root edgeFields for mutations
@@ -80,6 +88,17 @@ public class SchemaProvider {
         allTypes << nodeInterface
         allTypes.addAll typeResolve.values()
         allTypes.addAll enumResolve.values()
+        // make sure all built ins are available
+        allTypes.addAll([
+                Scalars.GraphQLInt,
+                Scalars.GraphQLString,
+                Scalars.GraphQLBoolean,
+                Scalars.GraphQLFloat,
+                Scalars.GraphQLLong,
+                Scalars.GraphQLShort,
+                Scalars.GraphQLBigInteger,
+                Scalars.GraphQLBigDecimal
+        ])
 
         def r = GraphQLSchema.newSchema()
         if (queryBuilder.fieldDefinitions.size() > 0) {
@@ -99,6 +118,12 @@ public class SchemaProvider {
             code()
         })
 
+        def multiProxyFields = domainClass.declaredFields.findAll({ it.isAnnotationPresent(GraphQLFields) }).collect({
+            Closure<List<GraphQLFieldDefinition>> sources = domainClass."$it.name"
+            def code = sources.rehydrate(sources.delegate, thisObject, sources.thisObject)
+            code()
+        }).flatten()
+
         def objectBuilder = graphql.schema.GraphQLObjectType.newObject()
                 .name(domainClass.simpleName)
                 .description(domainClass.getAnnotation(RelayType).description())
@@ -112,6 +137,7 @@ public class SchemaProvider {
                     }
                 })
                 .fields(proxyFields)
+                .fields(multiProxyFields)
 
 
         // add all normal/list relay fields
