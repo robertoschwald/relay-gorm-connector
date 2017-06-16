@@ -73,12 +73,20 @@ public class SchemaProvider {
         // build root edgeFields for mutations
 	    def mutationBuilder = graphql.schema.GraphQLObjectType.newObject().name('mutationType')
 	    typeResolve.each { domainObj, gqlObj ->
+
             def mutationNames = domainObj.declaredFields.findAll({ it.isAnnotationPresent(RelayMutation) })*.name
             mutationBuilder.fields mutationNames.collect { name ->
                 Closure<GraphQLFieldDefinition> source = domainObj."$name"
                 def code = source.rehydrate(source.delegate, thisObject, source.thisObject)
                 code()
             }
+
+            def mutationsNames = domainObj.declaredFields.findAll({ it.isAnnotationPresent(GraphQLMutations) })*.name
+            mutationBuilder.fields mutationsNames.collect { name ->
+                Closure<List<GraphQLFieldDefinition>> source = domainObj."$name"
+                def code = source.rehydrate(source.delegate, thisObject, source.thisObject)
+                code()
+            }.flatten() as List<GraphQLFieldDefinition>
 	    }
 
         queryBuilder = queryBuilder.build()
